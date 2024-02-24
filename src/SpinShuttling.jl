@@ -1,16 +1,15 @@
 module SpinShuttling
-
 using LinearAlgebra
 using Statistics
 using SpecialFunctions
 using QuadGK
-
 
 include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel, fidelity, sampling
+export OrnsteinUhlenbeckField, PinkBrownianField, GaussianRandomField, RandomFunction
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
@@ -152,14 +151,10 @@ function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{
     if model.n==1
         return characteristicvalue(model.R)
     elseif model.n==2 && model.Ψ== 1/√2 .* [0, 1, -1, 0]
-        # Σ(1,2)=-1*Σ(1,2)
-        # Σ(2,1)*=-1
         return integrate(Σ(1,1)+Σ(2,2)-Σ(1,2)-Σ(2,1),dt, dt)
     end
     return characteristicfunction(model.R)
 end
-
-
 
 """
 Monte-Carlo sampling of any objective function. 
