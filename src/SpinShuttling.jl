@@ -48,6 +48,18 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Monte-Carlo Parameter: M=$(model.M), N=$(model.N)")
 end
 
+"""
+General one spin shuttling model initialized at initial state |Ψ₀⟩, 
+with arbitrary shuttling path x(t). 
+# Arguments
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
+- `T::Real`: Maximum time
+- `M::Int`:  Monte-Carlo sampling size
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+- `x::Function`: Shuttling path
+- `instantiate::Bool`: Whether to instantiate the random function
+"""
 function OneSpinModel(Ψ::Vector{<:Number}, T::Real, M::Int, N::Int,
     B::GaussianRandomField, x::Function; instantiate::Bool=true)
 
@@ -69,6 +81,19 @@ OneSpinModel(T::Real, L::Real, M::Int, N::Int, B::GaussianRandomField; instantia
     OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t -> L / T * t, instantiate=instantiate)
 
 
+"""
+General two spin shuttling model initialized at initial state |Ψ₀⟩,
+with arbitrary shuttling paths x₁(t), x₂(t).
+# Arguments
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
+- `T::Real`: Maximum time
+- `M::Int`:  Monte-Carlo sampling size
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+- `x₁::Function`: Shuttling path for the first spin
+- `x₂::Function`: Shuttling path for the second spin
+- `instantiate::Bool`: Whether to instantiate the random function
+"""
 function TwoSpinModel(Ψ::Vector{<:Number}, T::Real, M::Int, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; instantiate::Bool=true)
     
@@ -117,7 +142,7 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
 end
 
 """
-
+Calculate the fidelity of the quantum state after spin shuttling process.
 """
 function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{<:Real}}
     N=model.N 
