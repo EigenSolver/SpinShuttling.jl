@@ -140,21 +140,26 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
     return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂, instantiate=instantiate)
 end
 
+# """
+# Calculate the fidelity of a spin shuttling model with respect to the initial state.
+# """
+# function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{<:Real}}
+#     N=model.N 
+#     dt= model.T/model.N
+#     # model.R is immutable
+#     return exp.(- integrate(model.R.Σ, dt, dt)/2)
+# end
+
 """
-Calculate the fidelity of the quantum state after spin shuttling process.
+Calculate the fidelity of a spin shuttling model with respect to the initial state.
 """
 function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{<:Real}}
     N=model.N 
     dt= model.T/model.N
     # model.R is immutable
-    Σ(i::Int,j::Int) = @view model.R.Σ[(i-1)*N+1: i*N , (j-1)*N+1: j*N]
-    if model.n==1
-        return characteristicvalue(model.R)
-    elseif model.n==2 && model.Ψ== 1/√2 .* [0, 1, -1, 0]
-        return integrate(Σ(1,1)+Σ(2,2)-Σ(1,2)-Σ(2,1),dt, dt)
-    end
-    return characteristicfunction(model.R)
+    return exp.(- integrate(model.R.Σ, dt, dt)/2)
 end
+
 
 """
 Monte-Carlo sampling of any objective function. 
@@ -183,12 +188,15 @@ function sampling(model::ShuttlingModel, objective::Function; vector::Bool=false
 end
 
 """
-Sample a phase integral of the process
+Sample a phase integral of the process. 
+The integrate of a random function should be obtained 
+from directly summation without using high-order interpolation 
+(Simpson or trapezoid). 
 """
 function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
     # model.R || error("covariance matrix is not initialized")
     N = model.N
-    dt = model.T / (N - 1)
+    dt = model.T / N 
     A = model.R(randseq)
     if model.n == 1
         Z = A
@@ -197,8 +205,8 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     else
         Z = missing
     end
-    phi = vector ? [cumsum((Z[1:N-1] + Z[2:N]) * dt / 2)] : integrate(Z, dt, method=:simpson)
-    return @. real(exp(1im * phi))
+    phi = vector ? [cumsum((Z[1:N-1] + Z[2:N]) * dt / 2)] : sum(Z)*dt
+    return cos.(phi)
 end
 
 function Χ(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField)

@@ -1,6 +1,6 @@
 using Test
 using QuadGK
-include("../src/SpinShuttling.jl")
+using SpinShuttling
 # include("testquadrature.jl")
 # include("teststochastics.jl")
 # include("testsymbolics.jl")
