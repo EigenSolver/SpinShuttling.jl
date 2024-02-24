@@ -187,8 +187,6 @@ function sampling(model::ShuttlingModel, objective::Function; vector::Bool=false
     return sampling(samplingfunction, model.M)
 end
 
-
-
 """
 Sample a phase integral of the process
 """
