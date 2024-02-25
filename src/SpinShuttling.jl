@@ -140,16 +140,6 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
     return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂, instantiate=instantiate)
 end
 
-# """
-# Calculate the fidelity of a spin shuttling model with respect to the initial state.
-# """
-# function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{<:Real}}
-#     N=model.N 
-#     dt= model.T/model.N
-#     # model.R is immutable
-#     return exp.(- integrate(model.R.Σ, dt, dt)/2)
-# end
-
 """
 Calculate the fidelity of a spin shuttling model with respect to the initial state.
 """
@@ -157,7 +147,7 @@ function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{
     N=model.N 
     dt= model.T/model.N
     # model.R is immutable
-    return exp.(- integrate(model.R.Σ, dt, dt)/2)
+    return vector ? characteristicfunction(model.R) : characteristicvalue(model.R)
 end
 
 
