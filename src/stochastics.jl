@@ -79,7 +79,7 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     N=size(R.Σ,1)
     μ = sum(c .*meanpartition(R, n))
     Σ = Symmetric(sum((c*c') .* covariancepartition(R, n)))
-    return typeof(R)(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
+    return RandomFunction(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
 end
 
 function CompositeRandomFunction(P::Vector{Matrix{Real}}, process::GaussianRandomField, c::Vector{Int})::RandomFunction

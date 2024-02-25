@@ -1,4 +1,3 @@
-using SpinShuttling
 using SpinShuttling: covariancematrix, CompositeRandomFunction, 
 Symmetric, covariancepartition, ishermitian, issymmetric
 using Plots
