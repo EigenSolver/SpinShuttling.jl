@@ -1,4 +1,5 @@
 module SpinShuttling
+
 using LinearAlgebra
 using Statistics
 using SpecialFunctions
@@ -8,8 +9,10 @@ include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
 
-export ShuttlingModel, OneSpinModel, TwoSpinModel, fidelity, sampling
-export OrnsteinUhlenbeckField, PinkBrownianField, GaussianRandomField, RandomFunction
+export ShuttlingModel, OneSpinModel, TwoSpinModel, RandomFunction
+export OrnsteinUhlenbeckField, PinkBrownianField
+export averagefidelity, fidelity, sampling
+export Χ
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
@@ -70,6 +73,7 @@ function OneSpinModel(Ψ::Vector{<:Number}, T::Real, M::Int, N::Int,
     end
     return model
 end
+
 
 """
 One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
@@ -141,13 +145,21 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
 end
 
 """
-Calculate the fidelity of a spin shuttling model with respect to the initial state.
+Calculate the average fidelity of a spin shuttling model using numerical integration 
+of the covariance matrix.
 """
-function fidelity(model::ShuttlingModel, vector::Bool=false)::Union{Real,Vector{<:Real}}
-    N=model.N 
-    dt= model.T/model.N
+function averagefidelity(model::ShuttlingModel)::Real
     # model.R is immutable
-    return vector ? characteristicfunction(model.R) : characteristicvalue(model.R)
+    if model.n==1
+        R=model.R
+    elseif model.n==2
+        R=CompositeRandomFunction(model.R, [1, -1])
+    elseif model.n >2
+        error("The number of spins is not supported")
+    end
+    χ = real(characteristicvalue(R))
+    F = @. 1/2 * (1 + χ)
+    return F
 end
 
 
@@ -177,6 +189,7 @@ function sampling(model::ShuttlingModel, objective::Function; vector::Bool=false
     return sampling(samplingfunction, model.M)
 end
 
+
 """
 Sample a phase integral of the process. 
 The integrate of a random function should be obtained 
@@ -184,25 +197,32 @@ from directly summation without using high-order interpolation
 (Simpson or trapezoid). 
 """
 function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
-    # model.R || error("covariance matrix is not initialized")
     N = model.N
-    dt = model.T / N 
-    A = model.R(randseq)
-    if model.n == 1
-        Z = A
-    elseif model.n == 2
-        Z = A[1:N] - A[N+1:end]
-    else
-        Z = missing
+    dt = model.T / N
+    if model.n==1
+        R=model.R
+    elseif model.n==2
+        # only valid for two-spin EPR pair, ψ=1/√2(|↑↓⟩-|↓↑⟩)
+        R=CompositeRandomFunction(model.R, [1, -1])
+    elseif model.n >2
+        error("The number of spins is not supported")
     end
-    phi = vector ? [cumsum((Z[1:N-1] + Z[2:N]) * dt / 2)] : sum(Z)*dt
-    return cos.(phi)
+    Z = R(randseq)
+    φ = (vector ? cumsum(Z) : sum(Z))* dt
+    F = @. 1/2*(1 + cos(φ))
+    return F
 end
 
+"""
+Theoretical fidelity of a sequenced two-spin EPR pair shuttling model.
+"""
 function Χ(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField)
     return Χ(T0, T1, L, B.θ[1], B.θ[2], B.σ)
 end
 
+"""
+Theoretical fidelity of a one-spin shuttling model.
+"""
 function Χ(T::Real,L::Real,B::OrnsteinUhlenbeckField)::Real
     return Χ(T, L, B.θ[1], B.θ[2], B.σ)
 end

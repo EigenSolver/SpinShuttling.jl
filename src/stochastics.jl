@@ -29,7 +29,7 @@ Similar type of `RandomFunction` in Mathematica.
 Generate a time series on a given time array subject to 
 a Gaussian random process traced from a Gaussian random field.
 """
-struct RandomFunction{T<:GaussianRandomField}
+struct RandomFunction
     μ::Vector{<:Real}
     P::Array{<:Real} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
@@ -37,7 +37,11 @@ struct RandomFunction{T<:GaussianRandomField}
     function RandomFunction(P::Matrix{<:Real}, process::GaussianRandomField)
         μ=process.μ isa Function ? process.μ(P) : repeat([process.μ], size(P, 1))
         Σ=covariancematrix(P, process)
-        return new{typeof(process)}(μ, P, Σ, cholesky(Σ))
+        return new(μ, P, Σ, cholesky(Σ))
+    end
+
+    function RandomFunction(μ::Vector{<:Real}, P::Array{<:Real}, Σ::Symmetric{<:Real}, C::Cholesky)
+        new(μ, P, Σ, C)
     end
 end
 
@@ -74,8 +78,8 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     n=length(c)
     N=size(R.Σ,1)
     μ = sum(c .*meanpartition(R, n))
-    Σ = sum((c*c') .* covariancepartition(R, n))
-    return RandomFunction(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
+    Σ = Symmetric(sum((c*c') .* covariancepartition(R, n)))
+    return typeof(R)(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
 end
 
 function CompositeRandomFunction(P::Vector{Matrix{Real}}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
