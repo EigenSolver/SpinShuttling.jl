@@ -31,7 +31,7 @@ a Gaussian random process traced from a Gaussian random field.
 """
 struct RandomFunction{T<:GaussianRandomField}
     μ::Vector{<:Real}
-    P::Matrix{<:Real} # sample trace
+    P::Array{<:Real} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
     C::Cholesky # decomposition
     function RandomFunction(P::Matrix{<:Real}, process::GaussianRandomField)
@@ -72,6 +72,7 @@ The output random function is a tensor contraction from the input.
 """
 function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunction
     n=length(c)
+    N=size(R.Σ,1)
     μ = sum(c .*meanpartition(R, n))
     Σ = sum((c*c') .* covariancepartition(R, n))
     return RandomFunction(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
@@ -151,7 +152,7 @@ Compute the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Real}}
+function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Number}}
     dt=R.P[2,1]-R.P[1,1]
     N=size(R.Σ,1)
     @assert N%2==1
@@ -166,7 +167,7 @@ Compute the final phase of the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicvalue(R::RandomFunction)::Real
+function characteristicvalue(R::RandomFunction)::Number
     dt=R.P[2,1]-R.P[1,1]
     return exp.(1im*integrate(R.μ, dt))*exp.(-integrate(R.Σ, dt, dt)/2)
 end
