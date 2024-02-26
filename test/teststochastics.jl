@@ -1,5 +1,5 @@
 using SpinShuttling: covariancematrix, CompositeRandomFunction, 
-Symmetric, covariancepartition, ishermitian, issymmetric
+Symmetric, Cholesky, covariancepartition, ishermitian, issymmetric, integrate, std
 using Plots
 ##
 figsize=(400, 300)
@@ -14,6 +14,7 @@ visualize=false
     R=RandomFunction(P , B)
     @test R() isa Vector{<:Real}
     @test R.Σ isa Symmetric
+
     t₀=T/5
 
 
@@ -66,8 +67,37 @@ end
     end
     println("std 1st order:", std(err1))
     println("std 2st order:", std(err2))
-    fig=plot(err1, xlabel="sample", ylabel="error", label="trapezoid")
-    plot!(err2, label="simpson")
-    display(fig)
+    if visualize
+        fig=plot(err1, xlabel="sample", ylabel="error", label="trapezoid")
+        plot!(err2, label="simpson")
+        display(fig)
+    end
 end
 
+##
+@testset "test 1/f noise" begin
+    σ = sqrt(2) / 20; M = 10000; N=501; κₜ=1/20;κₓ=1/0.1;
+    L=10;
+
+    γ=(0.01,100) # MHz
+    # 0.01 ~ 100 μs
+    # v = 0.1 ~ 1000 m/s
+    v=2; T=L/v;
+    B=PinkBrownianField(0,[κₓ],σ, γ)
+    model=OneSpinModel(T,L,M,N,B)
+    @test model.R.Σ isa Symmetric
+    @test model.R.C isa Cholesky
+    println(model)
+
+    random_trace=model.R()
+    if visualize
+        display(heatmap(sqrt.(model.R.Σ)))
+    end
+    println(model.R.Σ[1:3,1:3])
+    @test random_trace isa Vector{<:Real}
+    
+    if visualize
+        fig=scatter(random_trace, title="1/f noise", size=figsize)
+        display(fig)
+    end
+end

@@ -109,7 +109,8 @@ function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::PinkBro
     t₂ = p₂[1]
     x₁ = p₁[2:end]
     x₂ = p₂[2:end]
-    cov_pink = (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1])
+    γ = process.γ
+    cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) : 1
     cov_brown = exp(-dot(process.θ, abs.(x₁ - x₂)))
     return process.σ^2 * cov_pink * cov_brown
 end
