@@ -44,10 +44,12 @@ end
 
 function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Model for spin shuttling")
-    println(io, "T=$(model.T), L=$(model.L)")
-    println(io, "n=$(model.n), |Ψ₀⟩=$(round.(model.Ψ; digits=3))")
+    println(io, "Spin Number: n=$(model.n)")
+    println(io, "Initial State: |Ψ₀⟩=$(round.(model.Ψ; digits=3))")
     println(io, "Noise Channel: $(model.B)")
     println(io, "Monte-Carlo Parameter: M=$(model.M), N=$(model.N)")
+    println(io, "Process Time: T=$(model.T)")
+    println(io, "Spin Trajectories: {X_i(t)}=$(model.X)")
 end
 
 """
