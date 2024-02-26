@@ -29,7 +29,7 @@ specified by the paths of the shuttled spins.
 - `R::RandomFunction`: Random function of the sampled noises on paths
 """
 
-mutable struct ShuttlingModel
+struct ShuttlingModel
     n::Int # number of spins
     Ψ::Vector{<:Number}
     T::Real # time 
@@ -38,8 +38,6 @@ mutable struct ShuttlingModel
     B::GaussianRandomField # Noise field
     X::Vector{Function}
     R::RandomFunction
-    # incomplete initialization
-    ShuttlingModel(n, Ψ, T, M, N, B, X)=new(n, Ψ, T, M, N, B, X)
 end
 
 function Base.show(io::IO, model::ShuttlingModel)
@@ -62,17 +60,14 @@ with arbitrary shuttling path x(t).
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
 - `x::Function`: Shuttling path
-- `instantiate::Bool`: Whether to instantiate the random function
 """
 function OneSpinModel(Ψ::Vector{<:Number}, T::Real, M::Int, N::Int,
-    B::GaussianRandomField, x::Function; instantiate::Bool=true)
+    B::GaussianRandomField, x::Function)
 
-    model = ShuttlingModel(1, Ψ, T, M, N, B, [x])
-    if instantiate
-        t = range(0, T, N)
-        P = hcat(t, x.(t))
-        model.R = RandomFunction(P, B)
-    end
+    t = range(0, T, N)
+    P = hcat(t, x.(t))
+    R = RandomFunction(P, B)
+    model = ShuttlingModel(1, Ψ, T, M, N, B, [x], R)
     return model
 end
 
@@ -82,8 +77,8 @@ One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
 The qubit is shuttled at constant velocity along the path `x(t)=L/T*t`, 
 with total time `T` in `μs` and length `L` in `μm`.
 """
-OneSpinModel(T::Real, L::Real, M::Int, N::Int, B::GaussianRandomField; instantiate::Bool=true) =
-    OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t -> L / T * t, instantiate=instantiate)
+OneSpinModel(T::Real, L::Real, M::Int, N::Int, B::GaussianRandomField) =
+    OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t -> L / T * t)
 
 
 """
@@ -97,18 +92,15 @@ with arbitrary shuttling paths x₁(t), x₂(t).
 - `B::GaussianRandomField`: Noise field
 - `x₁::Function`: Shuttling path for the first spin
 - `x₂::Function`: Shuttling path for the second spin
-- `instantiate::Bool`: Whether to instantiate the random function
 """
 function TwoSpinModel(Ψ::Vector{<:Number}, T::Real, M::Int, N::Int,
-    B::GaussianRandomField, x₁::Function, x₂::Function; instantiate::Bool=true)
-    
+    B::GaussianRandomField, x₁::Function, x₂::Function)
+
     X = [x₁, x₂]
-    model=ShuttlingModel(2, Ψ, T, M, N, B, X)
-    if instantiate
-        t = range(0, T, N)
-        P=vcat(hcat(t, x₁.(t)), hcat(t, x₂.(t)))
-        model.R=RandomFunction(P, B)
-    end
+    t = range(0, T, N)
+    P = vcat(hcat(t, x₁.(t)), hcat(t, x₂.(t)))
+    R = RandomFunction(P, B)
+    model = ShuttlingModel(2, Ψ, T, M, N, B, X, R)
     return model
 end
 
@@ -118,8 +110,8 @@ The qubits are shuttled at constant velocity along the path `x₁(t)=L/T₁*t` a
 The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`.
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
 """
-function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int, 
-    B::GaussianRandomField; instantiate::Bool=true)
+function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
+    B::GaussianRandomField)
 
     function x₁(t::Real)::Real
         if t < 0
@@ -143,7 +135,7 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
     end
     Ψ = 1 / √2 .* [0, 1, -1, 0]
     T = T₀ + T₁
-    return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂, instantiate=instantiate)
+    return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂)
 end
 
 """
@@ -152,15 +144,15 @@ of the covariance matrix.
 """
 function averagefidelity(model::ShuttlingModel)::Real
     # model.R is immutable
-    if model.n==1
-        R=model.R
-    elseif model.n==2
-        R=CompositeRandomFunction(model.R, [1, -1])
-    elseif model.n >2
+    if model.n == 1
+        R = model.R
+    elseif model.n == 2
+        R = CompositeRandomFunction(model.R, [1, -1])
+    elseif model.n > 2
         error("The number of spins is not supported")
     end
     χ = real(characteristicvalue(R))
-    F = @. 1/2 * (1 + χ)
+    F = @. 1 / 2 * (1 + χ)
     return F
 end
 
@@ -186,7 +178,7 @@ Sampling an observable that defines on a specific spin shuttling model
 objective(mode, randseq, vector)
 """
 function sampling(model::ShuttlingModel, objective::Function; vector::Bool=false)
-    randpool = randn(model.n*model.N, model.M)
+    randpool = randn(model.n * model.N, model.M)
     samplingfunction = i::Int -> objective(model, randpool[:, i]; vector=vector)::Union{Real,Vector{<:Real}}
     return sampling(samplingfunction, model.M)
 end
@@ -218,7 +210,7 @@ from directly summation without using high-order interpolation
 function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
     # model.R || error("covariance matrix is not initialized")
     N = model.N
-    dt = model.T / N 
+    dt = model.T / N
     A = model.R(randseq)
     if model.n == 1
         Z = A
@@ -227,8 +219,8 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     else
         Z = missing
     end
-    phi = vector ? cumsum((Z[1:N-1] + Z[2:N]) * dt ) : sum(Z)*dt
-    return (1 .+cos.(phi))/2
+    phi = vector ? cumsum((Z[1:N-1] + Z[2:N]) * dt) : sum(Z) * dt
+    return (1 .+ cos.(phi)) / 2
 end
 
 """
@@ -241,7 +233,7 @@ end
 """
 Theoretical fidelity of a one-spin shuttling model.
 """
-function Χ(T::Real,L::Real,B::OrnsteinUhlenbeckField)::Real
+function Χ(T::Real, L::Real, B::OrnsteinUhlenbeckField)::Real
     return Χ(T, L, B.θ[1], B.θ[2], B.σ)
 end
 
