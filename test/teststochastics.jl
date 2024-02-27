@@ -1,9 +1,11 @@
 using SpinShuttling: covariancematrix, CompositeRandomFunction, 
-Symmetric, Cholesky, covariancepartition, ishermitian, issymmetric, integrate, std
+Symmetric, Cholesky, covariancepartition, ishermitian, issymmetric, integrate, std,
+characteristicfunction
 using Plots
+
 ##
 figsize=(400, 300)
-visualize=false
+visualize=true
 
 @testset begin "test of random function"
     T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=11; κₜ=1/20;κₓ=1/0.1;
@@ -76,10 +78,9 @@ end
 
 ##
 @testset "test 1/f noise" begin
-    σ = sqrt(2) / 20; M = 10000; N=501; κₜ=1/20;κₓ=1/0.1;
+    σ = sqrt(2) / 20; M = 1000; N=1001; κₜ=1/20;κₓ=1/0.1;
     L=10;
-
-    γ=(0.01,100) # MHz
+    γ=(0.0001,10000) # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
     v=2; T=L/v;
@@ -93,11 +94,36 @@ end
     if visualize
         display(heatmap(sqrt.(model.R.Σ)))
     end
-    println(model.R.Σ[1:3,1:3])
+    println(model.R.Σ[1:5,1:5])
     @test random_trace isa Vector{<:Real}
     
     if visualize
         fig=scatter(random_trace, title="1/f noise", size=figsize)
         display(fig)
+    end
+end
+
+##
+@testset "1/f noise fidelity" begin
+    let σ = sqrt(2)/20; M = 1000; N=301; L=10; γ=(0.0001,10000); # MHz
+        # 0.01 ~ 100 μs
+        # v = 0.1 ~ 1000 m/s
+        v=2; T=L/v;κₓ=1;
+        B=PinkBrownianField(0,[0],σ, γ)
+        model=OneSpinModel(T,L,M,N,B)
+
+        t=range(0,T,N-1)
+        f_mc, f_mc_err=sampling(model, fidelity, vector=true)
+        t_ni, chi_ni=characteristicfunction(model.R)
+        f_ni= @. (1+real(chi_ni))/2
+        f_th=map(T->(1+Χ(T,B))/2, t)|>collect
+        if visualize
+            fig=plot(t, f_mc, size=figsize, 
+                xlabel="t", ylabel="F", label="Monte Carlo",
+                ribbon=f_mc_err)
+                plot!(t_ni, f_ni, label="numerical integration")
+                plot!(t,f_th, label="theoretical fidelity")
+            display(fig)
+        end
     end
 end

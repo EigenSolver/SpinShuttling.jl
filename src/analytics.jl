@@ -62,3 +62,10 @@ function Χ(T::Real,L::Real,κₜ::Real,κₓ::Real,σ::Real)::Real
 end
 
 
+function ϕ(T::Real, γ::Tuple{Real,Real})::Real
+    a(T::Real, γ::Tuple{Real,Real})::Real = expinti(-γ[2]*T)-expinti(-γ[1]*T)
+    b(T::Real, γ::Tuple{Real,Real})::Real = (2- exp(-γ[2]*T))/γ[2]-(2- exp(-γ[1]*T))/γ[1]
+    c(T::Real, γ::Tuple{Real,Real})::Real = (1- exp(-γ[2]*T))/γ[2]^2-(1- exp(-γ[1]*T))/γ[1]^2
+    return (a(T,γ)*T^2-b(T,γ)*T+c(T,γ))/log(γ[2]/γ[1])
+end
+

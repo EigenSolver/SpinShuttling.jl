@@ -237,4 +237,12 @@ function Χ(T::Real, L::Real, B::OrnsteinUhlenbeckField)::Real
     return Χ(T, L, B.θ[1], B.θ[2], B.σ)
 end
 
+
+"""
+Theoretical fidelity of a one-spin shuttling model for a pink noise.
+"""
+function Χ(T::Real, B::PinkBrownianField)::Real
+    return exp(-B.σ^2/2*ϕ(T, B.γ))
+end
+
 end
