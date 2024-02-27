@@ -2,6 +2,9 @@ using SpinShuttling: covariancematrix, CompositeRandomFunction,
 Symmetric, Cholesky, covariancepartition, ishermitian, issymmetric, integrate, std,
 characteristicfunction
 using Plots
+using FFTW
+using LsqFit
+using Statistics: std, mean
 
 ##
 figsize=(400, 300)
@@ -48,7 +51,7 @@ end
 
 ## 
 @testset "trapezoid vs simpson for covariance matrix" begin
-    T=400; L=10; σ = sqrt(2) / 20; N=301; κₜ=1/20;κₓ=1/0.1;
+    T=400; L=10; σ = sqrt(2) / 20; N=1001; κₜ=1/20;κₓ=1/0.1;
     v=L/T;
     t=range(0, T, N)
     P=hcat(t, v.*t)
@@ -78,9 +81,9 @@ end
 
 ##
 @testset "test 1/f noise" begin
-    σ = sqrt(2) / 20; M = 1000; N=1001; κₜ=1/20;κₓ=1/0.1;
+    σ = sqrt(2) / 20; M = 1000; N=601; κₜ=1/20;κₓ=0;
     L=10;
-    γ=(0.0001,10000) # MHz
+    γ=(1e-8,1e8) # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
     v=2; T=L/v;
@@ -94,36 +97,49 @@ end
     if visualize
         display(heatmap(sqrt.(model.R.Σ)))
     end
-    println(model.R.Σ[1:5,1:5])
+    display(model.R.Σ[1:5,1:5])
     @test random_trace isa Vector{<:Real}
     
     if visualize
         fig=scatter(random_trace, title="1/f noise", size=figsize)
         display(fig)
     end
-end
 
-##
-@testset "1/f noise fidelity" begin
-    let σ = sqrt(2)/20; M = 1000; N=301; L=10; γ=(0.0001,10000); # MHz
-        # 0.01 ~ 100 μs
-        # v = 0.1 ~ 1000 m/s
-        v=2; T=L/v;κₓ=1;
-        B=PinkBrownianField(0,[0],σ, γ)
-        model=OneSpinModel(T,L,M,N,B)
+    
+    freq=fftfreq(N,1/(2*T))
+    psd_sheet=zeros(N, M)
 
-        t=range(0,T,N-1)
-        f_mc, f_mc_err=sampling(model, fidelity, vector=true)
-        t_ni, chi_ni=characteristicfunction(model.R)
-        f_ni= @. (1+real(chi_ni))/2
-        f_th=map(T->(1+Χ(T,B))/2, t)|>collect
-        if visualize
-            fig=plot(t, f_mc, size=figsize, 
-                xlabel="t", ylabel="F", label="Monte Carlo",
-                ribbon=f_mc_err)
-                plot!(t_ni, f_ni, label="numerical integration")
-                plot!(t,f_th, label="theoretical fidelity")
-            display(fig)
-        end
+    for i in 1:M
+        trace=model.R()
+        psd_sheet[:,i]= abs.(fft(trace)).^2
+    end
+
+    psd=mean(psd_sheet,dims=2);
+    psd_std=std(psd_sheet,dims=2);
+    freq=freq[2:N÷2];
+    psd=psd[2:N÷2];
+
+    # make a linear fit to the log-log plot
+    cutoff1=40
+    cutoff2=50
+    freq=freq[cutoff1:end-cutoff2]
+    psd=psd[cutoff1:end-cutoff2]
+
+    fit = curve_fit((x,p) -> p[1] .+ p[2]*x, log.(freq), log.(psd), [0.0, 0.0])
+    println("fit: ",fit.param)
+    # @test isapprox(fit.param[2], -1, atol=4e-2)
+    if visualize
+        println("cutoff freq: ",(freq[cutoff1], freq[cutoff2]))
+
+        fig=plot(freq,psd,
+        label="PSD", 
+        scale=:log10, 
+        xlabel="Frequency (MHz)", ylabel="Power",
+        lw=2, marker=:vline
+        )
+        # plot the fit
+        plot!(freq,exp.(fit.param[1] .+ fit.param[2]*log.(freq)), 
+        label="Fitting", lw=2)
+        display(fig)
     end
 end

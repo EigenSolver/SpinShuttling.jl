@@ -219,7 +219,7 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     else
         Z = missing
     end
-    phi = vector ? cumsum((Z[1:N-1] + Z[2:N]) * dt) : sum(Z) * dt
+    phi = vector ? cumsum(Z)* dt : sum(Z) * dt
     return (1 .+ cos.(phi)) / 2
 end
 
