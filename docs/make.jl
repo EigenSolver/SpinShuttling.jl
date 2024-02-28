@@ -6,7 +6,7 @@ makedocs(
     checkdocs = :exports,
     format = Documenter.HTML(
         edit_link = nothing,
-        canonical = "https://github.com/EigenSolver/SpinShuttling.git",
+        canonical = "https://github.com/EigenSolver/SpinShuttling.jl.git",
         assets = [ asset("assets/favicon.png", class=:ico, islocal = true) ]),
     pages=[
         "index.md",
@@ -24,5 +24,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "https://github.com/EigenSolver/SpinShuttling.git",
+    repo = "https://github.com/EigenSolver/SpinShuttling.jl.git",
     )

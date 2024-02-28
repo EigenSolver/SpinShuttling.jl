@@ -303,9 +303,7 @@ version = "2.3.1"
 
 [[deps.SpinShuttling]]
 deps = ["LinearAlgebra", "QuadGK", "SpecialFunctions", "Statistics"]
-git-tree-sha1 = "972e4d296647a61ca040273c39e783bdd1b25a41"
-repo-rev = "main"
-repo-url = ".."
+path = ".."
 uuid = "eff49e45-ae6d-44ae-9170-2124a87971c9"
 version = "0.1.3"
 
