@@ -10,6 +10,7 @@ makedocs(
         assets = [ asset("assets/favicon.png", class=:ico, islocal = true) ]),
     pages=[
         "index.md",
+        # "manual.md"
         # "quickstart.md",
         # "installation.md",
         # "examples.md",
