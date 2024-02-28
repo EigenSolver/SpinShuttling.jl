@@ -81,12 +81,12 @@ end
 
 ##
 @testset "test 1/f noise" begin
-    σ = sqrt(2) / 20; M = 1000; N=601; κₜ=1/20;κₓ=0;
+    σ = sqrt(2) / 20; M = 1000; N=1001; κₜ=1/20;κₓ=0.1;
     L=10;
-    γ=(1e-8,1e8) # MHz
+    γ=(1e-5,1e3) # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
-    v=2; T=L/v;
+    v=1; T=L/v;
     B=PinkBrownianField(0,[κₓ],σ, γ)
     model=OneSpinModel(T,L,M,N,B)
     @test model.R.Σ isa Symmetric
@@ -95,13 +95,13 @@ end
 
     random_trace=model.R()
     if visualize
-        display(heatmap(sqrt.(model.R.Σ)))
+        display(heatmap(sqrt.(model.R.Σ), title="covariance matrix", size=figsize))
     end
     display(model.R.Σ[1:5,1:5])
     @test random_trace isa Vector{<:Real}
     
     if visualize
-        fig=scatter(random_trace, title="1/f noise", size=figsize)
+        fig=scatter(random_trace, title="1/f noise", xlabel="t", ylabel="B(t)", size=figsize)
         display(fig)
     end
 
@@ -118,18 +118,20 @@ end
     psd_std=std(psd_sheet,dims=2);
     freq=freq[2:N÷2];
     psd=psd[2:N÷2];
-
     # make a linear fit to the log-log plot
-    cutoff1=40
-    cutoff2=50
+    println(length(freq))
+    
+    cutoff1=1
+    cutoff2=300
+    
     freq=freq[cutoff1:end-cutoff2]
     psd=psd[cutoff1:end-cutoff2]
 
     fit = curve_fit((x,p) -> p[1] .+ p[2]*x, log.(freq), log.(psd), [0.0, 0.0])
     println("fit: ",fit.param)
-    # @test isapprox(fit.param[2], -1, atol=4e-2)
+    @test isapprox(fit.param[2], -1, atol=4e-2)
     if visualize
-        println("cutoff freq: ",(freq[cutoff1], freq[cutoff2]))
+        println("cutoff freq: ",(freq[1], freq[end]))
 
         fig=plot(freq,psd,
         label="PSD", 
