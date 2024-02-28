@@ -1,2 +1,3 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+SpinShuttling = "eff49e45-ae6d-44ae-9170-2124a87971c9"

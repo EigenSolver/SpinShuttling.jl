@@ -190,13 +190,29 @@ The integrate of a random function should be obtained
 from directly summation without using high-order interpolation 
 (Simpson or trapezoid). 
 """
+function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
+    # model.R || error("covariance matrix is not initialized")
+    N = model.N
+    dt = model.T / N
+    A = model.R(randseq)
+    if model.n == 1
+        Z = A
+    elseif model.n == 2
+        # only valid for two-spin EPR pair, ψ=1/√2(|↑↓⟩-|↓↑⟩)
+        Z = A[1:N] - A[N+1:end] 
+    else
+        Z = missing
+    end
+    phi = vector ? cumsum(Z)* dt : sum(Z) * dt
+    return (1 .+ cos.(phi)) / 2
+end
+
 # function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
 #     N = model.N
 #     dt = model.T / N
 #     if model.n==1
 #         R=model.R
 #     elseif model.n==2
-#         # only valid for two-spin EPR pair, ψ=1/√2(|↑↓⟩-|↓↑⟩)
 #         R=CompositeRandomFunction(model.R, [1, -1])
 #     elseif model.n >2
 #         error("The number of spins is not supported")
@@ -207,21 +223,7 @@ from directly summation without using high-order interpolation
 #     return F
 # end
 
-function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
-    # model.R || error("covariance matrix is not initialized")
-    N = model.N
-    dt = model.T / N
-    A = model.R(randseq)
-    if model.n == 1
-        Z = A
-    elseif model.n == 2
-        Z = A[1:N] - A[N+1:end]
-    else
-        Z = missing
-    end
-    phi = vector ? cumsum(Z)* dt : sum(Z) * dt
-    return (1 .+ cos.(phi)) / 2
-end
+
 
 """
 Theoretical fidelity of a sequenced two-spin EPR pair shuttling model.
