@@ -7,7 +7,7 @@ makedocs(
     format = Documenter.HTML(
         edit_link = nothing,
         canonical = "https://github.com/EigenSolver/SpinShuttling.jl.git",
-        assets = [ asset("assets/favicon.png", class=:ico, islocal = true) ]),
+        assets = [ asset("assets/logo.svg", class=:ico, islocal = true) ]),
     pages=[
         "index.md",
         # "manual.md"
