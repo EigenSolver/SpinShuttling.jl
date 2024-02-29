@@ -9,10 +9,10 @@ makedocs(
         canonical = "https://github.com/EigenSolver/SpinShuttling.jl.git",
         assets = [ asset("assets/logo.svg", class=:ico, islocal = true) ]),
     pages=[
-        "index.md",
-        # "manual.md"
-        # "quickstart.md",
-        # "installation.md",
+        "Home"=>"index.md",
+        "Manual"=>Any[
+            "Quick Start"=>"guide.md",
+        ]
         # "examples.md",
         # "stochastics.md",
         # "analytics.md",
@@ -20,9 +20,8 @@ makedocs(
         # "reference.md",
         # "about.md"
     ],
-    
 )
 
-deploydocs(
-    repo = "https://github.com/EigenSolver/SpinShuttling.jl.git",
-    )
+# deploydocs(
+#     repo = "https://github.com/EigenSolver/SpinShuttling.jl.git",
+#     )

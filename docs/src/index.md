@@ -1,6 +1,6 @@
 # SpinShuttling.jl 
 
-Simulate the multiple-spin shuttling problem under correlated stochastic noise.
+*Simulate the multiple-spin shuttling problem under correlated stochastic noise.*
 
 ## Installation 
 
