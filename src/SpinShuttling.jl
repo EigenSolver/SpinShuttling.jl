@@ -160,17 +160,32 @@ end
 """
 Monte-Carlo sampling of any objective function. 
 The function must return Tuple{Real,Real} or Tuple{Vector{<:Real},Vector{<:Real}}
+# Arguments
+- `samplingfunction::Function`: The function to be sampled
+- `M::Int`: Monte-Carlo sampling size
+# Returns
+- `Tuple{Real,Real}`: The mean and variance of the sampled function
+- `Tuple{Vector{<:Real},Vector{<:Real}}`: The mean and variance of the sampled function
+# Example
+```julia
+f(x) = x^2
+sampling(f, 1000)
+```
+
+# Reference
+https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
+
 """
 function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tuple{Vector{<:Real},Vector{<:Real}}}
     N = length(samplingfunction(1))
-    f_sum = N > 1 ? zeros(N) : 0
-    f_var = copy(f_sum)
-    for i in 1:M
-        f_p = samplingfunction(i)::Union{Real,Vector{<:Real}}
-        f_sum += f_p
-        f_var += i > 1 ? abs.(i * f_p - f_sum) .^ 2 / (i * (i - 1)) : f_var
+    A = N > 1 ? zeros(N) : 0
+    Q = copy(A)
+    for k in 1:M
+        x = samplingfunction(k)::Union{Real,Vector{<:Real}}
+        Q = Q +(k-1)/k*(x-A).^ 2
+        A = A + (x-A)/k
     end
-    return f_sum / M, f_var / (M - 1)
+    return A, Q / (M - 1)
 end
 
 """
