@@ -22,6 +22,6 @@ makedocs(
     ],
 )
 
-# deploydocs(
-#     repo = "https://github.com/EigenSolver/SpinShuttling.jl.git",
-#     )
+deploydocs(
+    repo = "https://github.com/EigenSolver/SpinShuttling.jl.git",
+    )
