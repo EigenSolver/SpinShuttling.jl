@@ -9,10 +9,11 @@ include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
 
-export ShuttlingModel, OneSpinModel, TwoSpinModel, RandomFunction
-export OrnsteinUhlenbeckField, PinkBrownianField
+export ShuttlingModel, OneSpinModel, TwoSpinModel, 
+OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction,
+OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling
-export Χ
+export Χe
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
