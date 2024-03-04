@@ -13,7 +13,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction,
 OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling
-export Χe
+export Χ
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
@@ -48,7 +48,10 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Noise Channel: $(model.B)")
     println(io, "Monte-Carlo Parameter: M=$(model.M), N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
-    println(io, "Spin Trajectories: {X_i(t)}=$(model.X)")
+    println(io, "Shuttling Paths:")
+    for i in eachindex(model.X)
+        println(io, "  X_$(i)(t)=$(model.X[i])")
+    end
 end
 
 """
