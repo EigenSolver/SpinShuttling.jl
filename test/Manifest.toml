@@ -915,7 +915,7 @@ version = "2.3.1"
 
 [[deps.SpinShuttling]]
 deps = ["LinearAlgebra", "QuadGK", "SpecialFunctions", "Statistics"]
-path = "C:\\Users\\ynzhang\\.julia\\dev\\SpinShuttling"
+path = ".."
 uuid = "eff49e45-ae6d-44ae-9170-2124a87971c9"
 version = "0.1.3"
 
