@@ -65,7 +65,7 @@ end
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
-        f3=1/2(1+Χ(T,L,B))
+        f3=1/2(1+φ(T,L,B))
         err1[i]=abs(f1-f3)
         err2[i]=abs(f2-f3)
         i+=1

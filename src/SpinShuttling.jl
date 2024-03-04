@@ -13,7 +13,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction,
 OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling
-export Χ
+export φ
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
@@ -247,31 +247,58 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     else
         Z = missing
     end
-    phi = vector ? cumsum(Z)* dt : sum(Z) * dt
-    return (1 .+ cos.(phi)) / 2
+    ϕ = vector ? cumsum(Z)* dt : sum(Z) * dt
+    return (1 .+ cos.(ϕ)) / 2
+end
+
+
+
+"""
+Analytical average fidelity of a one-spin shuttling model.
+"""
+function φ(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
+    κₜ=B.θ[1]
+    κₓ=B.θ[2]
+    σ =B.σ
+    β = κₜ*T
+    γ = κₓ*L
+    if path == :straight
+        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*P1(β, γ)/2)
+    elseif path == :forthback
+        β/=2
+        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*(2*P1(β, γ)+P4(β,γ))/2)
+    else
+        error("Path not recognized. Use :straight or :forthback for one-spin shuttling model.")
+    end
+end
+
+"""
+Analytical average fidelity of a sequenced two-spin EPR pair shuttling model.
+"""
+function φ(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)::Real
+    κₜ=B.θ[1]
+    κₓ=B.θ[2]
+    σ =B.σ
+    τ = κₜ*T0
+    β = κₜ*T1
+    γ = κₓ*L
+    if path == :sequenced
+        return exp(-σ^2/(4*κₜ*κₓ)/κₜ^2*(F1(β, γ, τ)-F2(β, γ, τ)))
+    elseif path == :parallel
+        missing("Parallel path not implemented yet.")
+    else
+        error("Path not recognized. Use :sequenced or :parallel for two-spin EPR pair shuttling model.")
+    end
 end
 
 
 """
-Theoretical fidelity of a sequenced two-spin EPR pair shuttling model.
+Theoretical fidelity of a one-spin shuttling model for a pink-brownian noise.
 """
-function Χ(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField)
-    return Χ(T0, T1, L, B.θ[1], B.θ[2], B.σ)
-end
-
-"""
-Theoretical fidelity of a one-spin shuttling model.
-"""
-function Χ(T::Real, L::Real, B::OrnsteinUhlenbeckField)::Real
-    return Χ(T, L, B.θ[1], B.θ[2], B.σ)
-end
-
-
-"""
-Theoretical fidelity of a one-spin shuttling model for a pink noise.
-"""
-function Χ(T::Real, B::PinkBrownianField)::Real
-    return exp(-B.σ^2/2*ϕ(T, B.γ))
+function φ(T::Real, L::Real, B::PinkBrownianField)::Real
+    β= T.*B.γ
+    γ= L*B.θ[1]
+    return exp(-B.σ^2*T^2/2*F4(β, γ))
 end
 
 end

@@ -50,6 +50,6 @@ RandomFunction
 ```
 
 ```@docs
-Χ
+φ
 ```
 
