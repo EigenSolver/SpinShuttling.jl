@@ -78,8 +78,18 @@ The qubit is shuttled at constant velocity along the path `x(t)=L/T*t`,
 with total time `T` in `μs` and length `L` in `μm`.
 """
 OneSpinModel(T::Real, L::Real, M::Int, N::Int, B::GaussianRandomField) =
-    OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t -> L / T * t)
+    OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t::Real -> L / T * t)
 
+"""
+One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
+The qubit is shuttled at constant velocity along a forth-back path 
+`x(t, T, L) = t<T/2 ? 2L/T*t : 2L/T*(T-t)`, 
+with total time `T` in `μs` and length `L` in `μm`.
+"""
+function OneSpinForthBackModel(T::Real, L::Real, M::Int, N::Int, B::GaussianRandomField) 
+    x(t::Real, T::Real, L::Real)::Real = t<T/2 ? 2L/T*t : 2L/T*(T-t)
+    return OneSpinModel(1 / √2 * [1, 1], T, M, N, B, t::Real -> x(t, T, L))
+end
 
 """
 General two spin shuttling model initialized at initial state |Ψ₀⟩,
@@ -135,6 +145,21 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, M::Int, N::Int,
     end
     Ψ = 1 / √2 .* [0, 1, -1, 0]
     T = T₀ + T₁
+    return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂)
+end
+
+"""
+Two spin shuttling model initialized at the singlet state `|Ψ₀⟩=1/√2(|↑↓⟩-|↓↑⟩)`.
+The qubits are shuttled at constant velocity along the 2D path 
+`x₁(t)=L/T*t, y₁(t)=0` and `x₂(t)=L/T*t, y₂(t)=D`.
+The total shuttling time is `T` and the length of the path is `L` in `μm`.
+"""
+function TwoSpinParallelModel(T::Real, D::Real, L::Real, M::Int, N::Int,
+    B::GaussianRandomField)
+    @assert length(B.θ)>=3 
+    x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
+    x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
+    Ψ = 1 / √2 .* [0, 1, -1, 0]
     return TwoSpinModel(Ψ, T, M, N, B, x₁, x₂)
 end
 
@@ -221,23 +246,6 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     phi = vector ? cumsum(Z)* dt : sum(Z) * dt
     return (1 .+ cos.(phi)) / 2
 end
-
-# function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
-#     N = model.N
-#     dt = model.T / N
-#     if model.n==1
-#         R=model.R
-#     elseif model.n==2
-#         R=CompositeRandomFunction(model.R, [1, -1])
-#     elseif model.n >2
-#         error("The number of spins is not supported")
-#     end
-#     Z = R(randseq)
-#     φ = (vector ? cumsum(Z) : sum(Z))* dt
-#     F = @. 1/2*(1 + cos(φ))
-#     return F
-# end
-
 
 
 """
