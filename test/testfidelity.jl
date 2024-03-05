@@ -2,7 +2,7 @@ using Plots
 using SpinShuttling: characteristicfunction
 ##
 figsize=(400, 300)
-visualize=false
+visualize=true
 
 ##
 # @testset begin "test single spin shuttling fidelity"
@@ -28,24 +28,22 @@ visualize=false
 
 #
 @testset begin "test single spin forth-back shuttling fidelity"
-    T=200; L=10; σ = sqrt(2) / 20; M = 5000; N=501; κₜ=1/20;κₓ=1/0.1;
-    v=L/T;
-    t=range(0, T, N)
-    P=hcat(t, v.*t)
+    T=200; L=10; σ = sqrt(2) / 20; M = 5000; N=501; κₜ=1/20;κₓ=10; 
+    # exponential should be smaller than 100
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
     if visualize
         t=range(1e-2*T,T, 10)
         f_mc=[sampling(OneSpinForthBackModel(T,L,M,N,B), fidelity)[1] for T in t]
         f_ni=[averagefidelity(OneSpinForthBackModel(T,L,M,N,B)) for T in t]
-        f_th=map(T->(1+φ(T,L,B,path=:forthback))/2, t)|>collect
+        f_th=[(1+φ(T,L,B,path=:forthback))/2 for T in t]
         fig=plot(t, f_mc, size=figsize, 
             xlabel="t", ylabel="F", label="monte-carlo sampling",
             # ribbon=@. sqrt(f_mc_err/M)
             )
             plot!(t, f_ni, label="numerical integration")
             plot!(t, f_th, label="theoretical fidelity")
-        display(fig)
+        savefig(fig,"test")
     end
 
     model=OneSpinForthBackModel(T,L,M,N,B)

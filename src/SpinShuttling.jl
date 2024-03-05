@@ -266,7 +266,7 @@ function φ(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
         return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*P1(β, γ)/2)
     elseif path == :forthback
         β/=2
-        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*(P1(β, γ)+P5(β,γ)))
+        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*(P1(β, γ)+P4(β,γ)))
     else
         error("Path not recognized. Use :straight or :forthback for one-spin shuttling model.")
     end
