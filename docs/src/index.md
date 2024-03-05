@@ -22,7 +22,15 @@ OneSpinModel
 ```
 
 ```@docs
+OneSpinForthBackModel
+```
+
+```@docs
 TwoSpinModel
+```
+
+```@docs
+TwoSpinParallelModel
 ```
 
 ```@docs
