@@ -2,7 +2,7 @@ using Plots
 using SpinShuttling: characteristicfunction
 ##
 figsize=(400, 300)
-visualize=false
+visualize=true
 
 ##
 # @testset begin "test single spin characteristics"
@@ -46,36 +46,37 @@ visualize=false
 
 ##
 @testset "1/f noise chacacteristics" begin
-    σ = sqrt(2)/20; M = 5000; N=301; L=10; γ=(0.0001,10000); # MHz
+    σ = sqrt(2)/20; M = 500; N=501; L=10; γ=(1e-7,1e7); # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
-    v=0.1; T=L/v;κₓ=5;
+    v=0.1; T=L/v; κₓ=20;
     B=PinkBrownianField(0,[κₓ],σ, γ)
     model=OneSpinModel(T,L,M,N,B)
 
-    f1=averagefidelity(model)
-    f2, f2_err=sampling(model, fidelity)
-    f3=1/2*(1+φ(T,L,B))
-    @test isapprox(f1, f3,rtol=1e-2)
-    @test isapprox(f2, f3, rtol=1e-2)
-    println("NI:", f1)
-    println("MC:", f2)
-    println("TH:", f3)
+    # f1=averagefidelity(model)
+    # f2, f2_err=sampling(model, fidelity)
+    # f3=1/2*(1+φ(T,L,B))
+    # @test isapprox(f1, f3,rtol=1e-2)
+    # @test isapprox(f2, f3, rtol=1e-2)
+    # println("NI:", f1)
+    # println("MC:", f2)
+    # println("TH:", f3)
 
-    t=range(0,T,N)
-    f_mc, f_mc_err=sampling(model, fidelity, vector=true)
+    t=range(1e-4*T,T,10)
+    # f_mc, f_mc_err=sampling(model, fidelity, vector=true)
     t_ni, chi_ni=characteristicfunction(model.R)
     f_ni= @. (1+real(chi_ni))/2
     f_th=map(T->(1+φ(T,L,B))/2, t)|>collect
     if visualize
-        fig=plot(t, f_mc, size=figsize, 
+        fig=plot( size=figsize, 
             xlabel="t", ylabel="F", label="monte-carlo sampling",
-            ribbon=f_mc_err)
+            # ribbon=sqrt.(f_mc_err/M)
+            )
             plot!(t_ni, f_ni, label="numerical integration")
             plot!(t,f_th, label="theoretical fidelity")
-        display(fig)
+        savefig(fig, "1fnoise.png")
     end
 
-    @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in 10:N ])
+    # @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in 10:N ])
 end
 

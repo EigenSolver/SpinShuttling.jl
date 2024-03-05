@@ -65,5 +65,5 @@ function F4(β::Tuple{Real,Real},γ::Real)::Real
     a(β::Real,γ::Real)=(1-γ)*log((β+γ)/β)
     b(β::Real,γ::Real)=γ*(gamma(0,β+γ)+(1-exp(-(β+γ)))/(β+γ))
     c(β::Real,γ::Real)=exp(-γ)*expinti(-β)-expinti(-(β+γ))
-    return 1/γ^2*log(β[2]/β[1])*(a(β[2],γ)-a(β[1],γ)+b(β[2],γ)-b(β[1],γ)+c(β[2],γ)-c(β[1],γ))
+    return 1/γ^2/log(β[2]/β[1])*(a(β[2],γ)-a(β[1],γ)+b(β[1],γ)-b(β[2],γ)+c(β[2],γ)-c(β[1],γ))
 end

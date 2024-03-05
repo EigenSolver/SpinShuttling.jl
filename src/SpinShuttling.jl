@@ -298,7 +298,7 @@ Theoretical fidelity of a one-spin shuttling model for a pink-brownian noise.
 function φ(T::Real, L::Real, B::PinkBrownianField)::Real
     β= T.*B.γ
     γ= L*B.θ[1]
-    return exp(-B.σ^2*T^2/2*F4(β, γ))
+    return exp(-B.σ^2*T^2*F4(β, γ))
 end
 
 end
