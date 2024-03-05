@@ -46,6 +46,11 @@ function P4(β::Real,γ::Real)::Real
     return ((ℯ^(-2β)-1)*(γ/β)-2*ℯ^(β+γ)+ℯ^(-2β)+1)/(1-γ^2/β^2)
 end
 
+function P5(β::Real,γ::Real)::Real
+    return β*(-2*β*exp(-β - γ) + (β - γ) + exp(-2β)*(β + γ))/(β^2 - γ^2)
+end
+
+
 function F1(β::Real,γ::Real,τ::Real)::Real
     return P1(β,γ)+P2(β,γ,τ)+2*P3(β,γ,τ)
 end
