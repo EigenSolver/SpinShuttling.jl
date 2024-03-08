@@ -1,8 +1,8 @@
-# SpinShuttling.jl 
+# SpinShuttling.jl
 
 *Simulate the multiple-spin shuttling problem under correlated stochastic noise.*
 
-## Installation 
+## Installation
 
 SpinShuttling can be installed using the Julia package manager.
 From the Julia REPL, type `]` to enter the Pkg REPL mode and run
@@ -12,10 +12,12 @@ pkg> add SpinShuttling
 ```
 
 ## APIs
+
 ```@meta
 CurrentModule = SpinShuttling
 ```
 
+### Spin Shuttling Models
 
 ```@docs
 OneSpinModel
@@ -33,6 +35,8 @@ TwoSpinModel
 TwoSpinParallelModel
 ```
 
+### Fidelity Metric
+
 ```@docs
 fidelity
 ```
@@ -44,6 +48,12 @@ sampling
 ```@docs
 averagefidelity
 ```
+
+```@docs
+φ
+```
+
+### Stochastics
 
 ```@docs
 OrnsteinUhlenbeckField
@@ -58,6 +68,21 @@ RandomFunction
 ```
 
 ```@docs
-φ
+CompositeRandomFunction
 ```
 
+```@docs
+characteristicfunction
+```
+
+```@docs
+characteristicvalue
+```
+
+```@docs
+covariancematrix
+```
+
+```@docs
+covariance
+```
