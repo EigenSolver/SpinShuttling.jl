@@ -108,7 +108,7 @@ end
             )
             plot!(t_ni, f_ni, label="numerical integration")
             plot!(t,f_th, label="theoretical fidelity")
-        savefig(fig, "1fnoise.png")
+        display(fig)
     end
 
     @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in 10:N ])
