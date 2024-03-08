@@ -86,11 +86,22 @@ One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
 The qubit is shuttled at constant velocity along a forth-back path 
 `x(t, T, L) = t<T/2 ? 2L/T*t : 2L/T*(T-t)`, 
 with total time `T` in `μs` and length `L` in `μm`.
+# Arguments
+- `T::Real`: Maximum time
+- `L::Real`: Length of the path
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+- `v::Real`: Velocity of the shuttling
 """
-function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField) 
-    x(t::Real, T::Real, L::Real)::Real = t<T/2 ? 2L/T*t : 2L/T*(T-t)
-    return OneSpinModel(1 / √2 * [1, 1], T, N, B, t::Real -> x(t, T, L))
+function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField) 
+    x(t::Real, v::Real, L::Real)::Real = (t=t%(2L/v); v*t < L ? v*t : 2L-v*t)
+    return OneSpinModel(1 / √2 * [1, 1], t, N, B, τ -> x(τ, 2L/T, L))
 end
+
+function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField) 
+    return OneSpinForthBackModel(T, T, L, N, B)
+end
+
 
 """
 General two spin shuttling model initialized at initial state |Ψ₀⟩,

@@ -111,5 +111,5 @@ end
         display(fig)
     end
 
-    @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in 10:N ])
+    @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in 10:N])
 end
