@@ -26,7 +26,7 @@ We need to specify the discretization size and monte-carlo size to create a mode
 ```
 M = 10000; # monte carlo sampling size
 N=301; # discretization size
-model=OneSpinModel(T,L,M,N,B)
+model=OneSpinModel(T,L,N,B)
 println(model)
 ```
 The fidelity of the spin state after shuttling can be calculated using numerical integration of the covariance matrix.  
@@ -35,7 +35,7 @@ f1=averagefidelity(model)
 ```
 The fidelity can also be obtained from Monte-Carlo sampling.
 ```
-f2, f2_err=sampling(model, fidelity)
+f2, f2_err=sampling(model, fidelity, M)
 ```
 For the single spin shuttling at constant velocity, analytical solution is also available. 
 ```

@@ -3,4 +3,4 @@ using SpinShuttling
 
 # include("testquadrature.jl")
 include("testfidelity.jl")
-# include("teststochastics.jl")
+include("teststochastics.jl")

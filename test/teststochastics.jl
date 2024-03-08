@@ -88,7 +88,7 @@ end
     # v = 0.1 ~ 1000 m/s
     v=1; T=L/v;
     B=PinkBrownianField(0,[κₓ],σ, γ)
-    model=OneSpinModel(T,L,M,N,B)
+    model=OneSpinModel(T,L,N,B)
     @test model.R.Σ isa Symmetric
     @test model.R.C isa Cholesky
     println(model)
