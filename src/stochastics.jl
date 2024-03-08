@@ -26,8 +26,14 @@ end
 
 """
 Similar type of `RandomFunction` in Mathematica.
-Generate a time series on a given time array subject to 
+Can be used to generate a time series on a given time array subject to 
 a Gaussian random process traced from a Gaussian random field.
+
+# Arguments
+- `μ::Vector{<:Real}`: mean of the process
+- `P::Array{<:Real}`: time-position array
+- `Σ::Symmetric{<:Real}`: covariance matrices
+- `C::Cholesky`: cholesky decomposition of the covariance matrices
 """
 struct RandomFunction
     μ::Vector{<:Real}

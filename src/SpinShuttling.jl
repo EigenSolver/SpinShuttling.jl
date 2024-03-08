@@ -10,9 +10,10 @@ include("analytics.jl")
 include("stochastics.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel, 
-OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction,
+OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction
 OrnsteinUhlenbeckField, PinkBrownianField
-export averagefidelity, fidelity, sampling
+export averagefidelity, fidelity, sampling, characteristicfunction, characteristicvalue
+export covariance, covariancematrix
 export φ
 
 """
