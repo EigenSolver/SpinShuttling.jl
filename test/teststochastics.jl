@@ -1,6 +1,5 @@
-using SpinShuttling: covariancematrix, CompositeRandomFunction, 
-Symmetric, Cholesky, covariancepartition, ishermitian, issymmetric, integrate, std,
-characteristicfunction
+using SpinShuttling: covariancepartition
+using LinearAlgebra: Symmetric, Cholesky, ishermitian, issymmetric, integrate
 using Plots
 using FFTW
 using LsqFit
@@ -49,35 +48,74 @@ visualize=true
     end
 end
 
-## 
+# 
 @testset "trapezoid vs simpson for covariance matrix" begin
-    T=400; L=10; σ = sqrt(2) / 20; N=1001; κₜ=1/20;κₓ=1/0.1;
-    v=L/T;
-    t=range(0, T, N)
-    P=hcat(t, v.*t)
-    M=20
+    L=10; σ = sqrt(2) / 20; N=501; κₜ=1/20;κₓ=1/0.1;
+    v=20;
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+
+    M=30
     err1=zeros(M)
     err2=zeros(M)
     i=1
-    for T in T/2 .*(1 .+rand(M))
-        B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+    for T in range(1, 50, length=M)
+        t=range(0, T, N)
+        P=hcat(t, v.*t)
         R=RandomFunction(P , B)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
-        f3=1/2(1+φ(T,L,B))
+        @test isapprox(f1,f2,rtol=1e-2) 
+        f3=φ(T,L,B)
         err1[i]=abs(f1-f3)
         err2[i]=abs(f2-f3)
         i+=1
     end
-    println("std 1st order:", std(err1))
-    println("std 2st order:", std(err2))
+    println("mean 1st order:", mean(err1))
+    println("mean 2nd order:", mean(err2))
     if visualize
-        fig=plot(err1, xlabel="sample", ylabel="error", label="trapezoid")
+        fig=plot(err1, xlabel="T", ylabel="error", label="trapezoid")
         plot!(err2, label="simpson")
         display(fig)
     end
 end
+
+##
+
+## 
+@testset "symmetric integration for covariance matrix" begin
+    σ = sqrt(2) / 20; N=21; κₜ=1;κₓ=0.01;
+    v=2;
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+
+    M=5
+    err1=zeros(M)
+    err1_sym=zeros(M)
+    err2=zeros(M)
+    i=1
+    T_range=range(10, 20, length=M)
+    for T in T_range
+        t=range(0, T, N)
+        P=hcat(t, v.*t)
+        R=RandomFunction(P , B)
+        dt=T/N
+        f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
+        f1_sym=exp(-integrate(R.Σ, dt)/2)
+        f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
+        f3=φ(T,v*T,B)
+        err1[i]=abs(f1-f3)/f3
+        err1_sym[i]=abs(f1_sym-f3)/f3
+        err2[i]=abs(f2-f3)/f3
+        i+=1
+    end
+    println("mean 1st order:", mean(err1))
+    println("mean 1st order symmetric:", mean(err1_sym))
+    println("mean 2nd order:", mean(err2))
+    @test mean(err1) < 1e-2
+    @test mean(err1_sym) < 1e-2
+    @test mean(err2) < 1e-2
+end
+
 
 ##
 @testset "test 1/f noise" begin

@@ -167,7 +167,7 @@ function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{
     dt=R.P[2,1]-R.P[1,1]
     N=size(R.Σ,1)
     @assert N%2==1
-    χ(j::Int)=exp.(1im*integrate(R.μ[1:j], dt))*exp.(-integrate((@view R.Σ[1:j,1:j]), dt, dt)/2)
+    χ(j::Int)=exp.(1im*integrate(view(R.μ, 1:j), dt))*exp.(-integrate(view(R.Σ, 1:j,1:j), dt, dt)/2)
     t=R.P[2:2:N-1,1]
     f=[χ(j) for j in 3:2:N] # only for simpson's rule
     return (t,f)
@@ -180,5 +180,5 @@ Using Simpson's rule by default.
 """
 function characteristicvalue(R::RandomFunction)::Number
     dt=R.P[2,1]-R.P[1,1]
-    return exp.(1im*integrate(R.μ, dt))*exp.(-integrate(R.Σ, dt, dt)/2)
+    return exp.(1im*integrate(R.μ, dt))*exp.(-integrate((@view R.Σ[:,:]), dt, dt)/2)
 end
