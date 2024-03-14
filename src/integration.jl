@@ -3,12 +3,12 @@ const ArrayOrSubArray{T,N} = Union{Array{T,N}, SubArray{T,N}}
 """
 1D Simpson integral of function `f(x)` on a given array of `y=f(x₁), f(x₂)...` with constant
 increment `h`
-...
+
 # Arguments
 - `y::Vector{<:Real}`: f(x).
 - `h::Real`: the step of integral.
 - `method::Symbol=:simpson`: the method of integration 
-...
+
 """
 function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:simpson)::Real
     n = length(y)-1

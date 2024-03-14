@@ -43,7 +43,7 @@ end
             )
             plot!(t, f_ni, label="numerical integration")
             plot!(t, f_th, label="theoretical fidelity")
-        savefig(fig,"test")
+        display(fig)
     end
 
     model=OneSpinForthBackModel(T,L,N,B)
