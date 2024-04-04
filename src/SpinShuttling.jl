@@ -215,7 +215,7 @@ function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tu
     N = length(samplingfunction(1))
     A = N > 1 ? zeros(N) : 0
     Q = copy(A)
-    for k in 1:M
+    Threads.@threads for k in 1:M
         x = samplingfunction(k)::Union{Real,Vector{<:Real}}
         Q = Q +(k-1)/k*(x-A).^ 2
         A = A + (x-A)/k

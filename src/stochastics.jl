@@ -135,7 +135,7 @@ function covariancematrix(P₁::Matrix{<:Real}, P₂::Matrix{<:Real}, process::G
     N = size(P₁, 1)
     P₁ = P₁'; P₂ = P₂';
     A = Matrix{Real}(undef, N, N)
-    for i in 1:N
+    Threads.@threads for i in 1:N
         for j in 1:N
             A[i, j] = covariance(P₁[:, i], P₂[:, j], process)
         end
@@ -150,7 +150,7 @@ function covariancematrix(P::Matrix{<:Real}, process::GaussianRandomField)::Symm
     N = size(P, 1)
     P = P'
     A = Matrix{Real}(undef, N, N)
-    for i in 1:N
+    Threads.@threads for i in 1:N
         for j in i:N
             A[i, j] = covariance(P[:, i], P[:, j], process)
         end
@@ -164,6 +164,7 @@ numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
 function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Number}}
+    # need further optimization
     dt=R.P[2,1]-R.P[1,1]
     N=size(R.Σ,1)
     @assert N%2==1
