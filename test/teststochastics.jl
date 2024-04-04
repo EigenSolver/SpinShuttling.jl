@@ -7,77 +7,77 @@ using Statistics: std, mean
 figsize=(400, 300)
 visualize=false
 
-##
-# @testset begin "test of random function"
-#     T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=11; κₜ=1/20;κₓ=1/0.1;
-#     v=L/T;
-#     t=range(0, T, N)
-#     P=hcat(t, v.*t)
-#     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-#     R=RandomFunction(P , B)
-#     @test R() isa Vector{<:Real}
-#     @test R.Σ isa Symmetric
+#
+@testset begin "test of random function"
+    T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=11; κₜ=1/20;κₓ=1/0.1;
+    v=L/T;
+    t=range(0, T, N)
+    P=hcat(t, v.*t)
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+    R=RandomFunction(P , B)
+    @test R() isa Vector{<:Real}
+    @test R.Σ isa Symmetric
 
-#     t₀=T/5
+    t₀=T/5
 
 
-#     P1=hcat(t, v.*t); P2=hcat(t, v.*(t.-t₀))
-#     crosscov=covariancematrix(P1, P2, B)
+    P1=hcat(t, v.*t); P2=hcat(t, v.*(t.-t₀))
+    crosscov=covariancematrix(P1, P2, B)
 
-#     if visualize
-#         display(heatmap(collect(R.Σ), title="covariance matrix, test fig 1", size=figsize)) 
-#         display(plot([R(),R(),R()],title="random function, test fig 2", size=figsize))
-#         display(heatmap(crosscov, title="cross covariance matrix, test fig 3", size=figsize))
-#     end
+    if visualize
+        display(heatmap(collect(R.Σ), title="covariance matrix, test fig 1", size=figsize)) 
+        display(plot([R(),R(),R()],title="random function, test fig 2", size=figsize))
+        display(heatmap(crosscov, title="cross covariance matrix, test fig 3", size=figsize))
+    end
 
-#     @test transpose(crosscov) == covariancematrix(P2, P1, B)
+    @test transpose(crosscov) == covariancematrix(P2, P1, B)
 
-#     P=vcat(P1,P2)
-#     R=RandomFunction(P,B)
-#     c=[1,1]
-#     RΣ=sum(c'*c .* covariancepartition(R, 2))
-#     @test size(RΣ) == (N,N)
+    P=vcat(P1,P2)
+    R=RandomFunction(P,B)
+    c=[1,1]
+    RΣ=sum(c'*c .* covariancepartition(R, 2))
+    @test size(RΣ) == (N,N)
 
-#     @test issymmetric(RΣ)
-#     @test ishermitian(RΣ)
+    @test issymmetric(RΣ)
+    @test ishermitian(RΣ)
 
-#     RC=CompositeRandomFunction(R, c)
-#     if visualize
-#         display(heatmap(sqrt.(RΣ)))
-#     end
-# end
+    RC=CompositeRandomFunction(R, c)
+    if visualize
+        display(heatmap(sqrt.(RΣ)))
+    end
+end
 
-##
-# @testset "trapezoid vs simpson for covariance matrix" begin
-#     L=10; σ = sqrt(2) / 20; N=501; κₜ=1/20;κₓ=1/0.1;
-#     v=20;
-#     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+#
+@testset "trapezoid vs simpson for covariance matrix" begin
+    L=10; σ = sqrt(2) / 20; N=501; κₜ=1/20;κₓ=1/0.1;
+    v=20;
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
-#     M=30
-#     err1=zeros(M)
-#     err2=zeros(M)
-#     i=1
-#     for T in range(1, 50, length=M)
-#         t=range(0, T, N)
-#         P=hcat(t, v.*t)
-#         R=RandomFunction(P , B)
-#         dt=T/N
-#         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
-#         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
-#         @test isapprox(f1,f2,rtol=1e-2) 
-#         f3=φ(T,L,B)
-#         err1[i]=abs(f1-f3)
-#         err2[i]=abs(f2-f3)
-#         i+=1
-#     end
-#     println("mean 1st order:", mean(err1))
-#     println("mean 2nd order:", mean(err2))
-#     if visualize
-#         fig=plot(err1, xlabel="T", ylabel="error", label="trapezoid")
-#         plot!(err2, label="simpson")
-#         display(fig)
-#     end
-# end
+    M=30
+    err1=zeros(M)
+    err2=zeros(M)
+    i=1
+    for T in range(1, 50, length=M)
+        t=range(0, T, N)
+        P=hcat(t, v.*t)
+        R=RandomFunction(P , B)
+        dt=T/N
+        f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
+        f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
+        @test isapprox(f1,f2,rtol=1e-2) 
+        f3=φ(T,L,B)
+        err1[i]=abs(f1-f3)
+        err2[i]=abs(f2-f3)
+        i+=1
+    end
+    println("mean 1st order:", mean(err1))
+    println("mean 2nd order:", mean(err2))
+    if visualize
+        fig=plot(err1, xlabel="T", ylabel="error", label="trapezoid")
+        plot!(err2, label="simpson")
+        display(fig)
+    end
+end
 
 ## 
 @testset "symmetric integration for covariance matrix" begin

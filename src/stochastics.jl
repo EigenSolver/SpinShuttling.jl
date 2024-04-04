@@ -107,6 +107,11 @@ function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::Ornstei
     process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ - p₂)))
 end
 
+function covariance(p₁::Tuple, p₂::Tuple, process::OrnsteinUhlenbeckField)::Real
+    process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
+end
+
+
 """
 Covariance function of Pink-Brownian process.
 """
@@ -133,11 +138,10 @@ When `P₁!=P₂`, it is the cross-covariance matrix between two Gaussian random
 function covariancematrix(P₁::Matrix{<:Real}, P₂::Matrix{<:Real}, process::GaussianRandomField)::Matrix{Real}
     @assert size(P₁) == size(P₂)
     N = size(P₁, 1)
-    P₁ = P₁'; P₂ = P₂';
     A = Matrix{Real}(undef, N, N)
     Threads.@threads for i in 1:N
         for j in 1:N
-            A[i, j] = covariance(P₁[:, i], P₂[:, j], process)
+            A[i, j] = covariance(P₁[i, :], P₂[j, :], process)
         end
     end
     return A
@@ -148,11 +152,22 @@ Auto-Covariance matrix of a Gaussian random process.
 """
 function covariancematrix(P::Matrix{<:Real}, process::GaussianRandomField)::Symmetric
     N = size(P, 1)
-    P = P'
     A = Matrix{Real}(undef, N, N)
     Threads.@threads for i in 1:N
         for j in i:N
-            A[i, j] = covariance(P[:, i], P[:, j], process)
+            A[i, j] = covariance(P[i,:], P[j, :], process)
+        end
+    end
+    return Symmetric(A)
+end
+
+
+function covariancematrix(P::Vector{<:Tuple{<:Real,<:Real}}, process::GaussianRandomField)::Symmetric
+    N = size(P, 1)
+    A = Matrix{Real}(undef, N, N)
+    Threads.@threads for i in 1:N
+        for j in i:N
+            A[i, j] = covariance(P[i], P[j], process)
         end
     end
     return Symmetric(A)
