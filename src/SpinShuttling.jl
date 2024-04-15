@@ -14,7 +14,7 @@ OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunc
 OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling, characteristicfunction, characteristicvalue
 export covariance, covariancematrix
-export φ
+export W
 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
@@ -256,8 +256,8 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
     else
         Z = missing
     end
-    ϕ = vector ? cumsum(Z)* dt : sum(Z) * dt
-    return (1 .+ cos.(ϕ)) / 2
+    W = vector ? cumsum(Z)* dt : sum(Z) * dt
+    return (1 .+ cos.(W)) / 2
 end
 
 
@@ -265,7 +265,7 @@ end
 """
 Analytical average fidelity of a one-spin shuttling model.
 """
-function φ(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
+function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
     κₜ=B.θ[1]
     κₓ=B.θ[2]
     σ =B.σ
@@ -284,7 +284,7 @@ end
 """
 Analytical average fidelity of a sequenced two-spin EPR pair shuttling model.
 """
-function φ(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)::Real
+function W(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)::Real
     κₜ=B.θ[1]
     κₓ=B.θ[2]
     σ =B.σ
@@ -304,7 +304,7 @@ end
 """
 Theoretical fidelity of a one-spin shuttling model for a pink-brownian noise.
 """
-function φ(T::Real, L::Real, B::PinkBrownianField)::Real
+function W(T::Real, L::Real, B::PinkBrownianField)::Real
     β= T.*B.γ
     γ= L*B.θ[1]
     return exp(-B.σ^2*T^2*F4(β, γ))

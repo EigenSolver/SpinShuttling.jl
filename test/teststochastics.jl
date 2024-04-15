@@ -65,7 +65,7 @@ end
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
         @test isapprox(f1,f2,rtol=1e-2) 
-        f3=φ(T,L,B)
+        f3=W(T,L,B)
         err1[i]=abs(f1-f3)
         err2[i]=abs(f2-f3)
         i+=1
@@ -103,7 +103,7 @@ end
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f1_sym=exp(-integrate(R.Σ, dt)/2)
         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
-        f3=φ(T,v*T,B)
+        f3=W(T,v*T,B)
         err1[i]=abs(f1-f3)/f3
         err1_sym[i]=abs(f1_sym-f3)/f3
         err2[i]=abs(f2-f3)/f3

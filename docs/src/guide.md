@@ -51,7 +51,7 @@ f2, f2_err=sampling(model, fidelity, M)
 ```
 For the single spin shuttling at constant velocity, analytical solution is also available. 
 ```julia
-f3=1/2*(1+φ(T,L,B))
+f3=1/2*(1+W(T,L,B))
 ```
 We can compare the results form the three methods.
 ```julia

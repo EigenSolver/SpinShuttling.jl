@@ -50,7 +50,7 @@ averagefidelity
 ```
 
 ```@docs
-φ
+W
 ```
 
 ### Stochastics

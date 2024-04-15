@@ -18,7 +18,7 @@ visualize=true
 
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
-    f3=1/2*(1+φ(T,L,B))
+    f3=1/2*(1+W(T,L,B))
     @test isapprox(f1, f3,rtol=1e-2)
     @test isapprox(f2, f3, rtol=1e-2) 
     println("NI:", f1)
@@ -36,7 +36,7 @@ end
         t=range(1e-2*T,T, 10)
         f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), fidelity, M)[1] for T in t]
         f_ni=[averagefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
-        f_th=[(1+φ(T,L,B,path=:forthback))/2 for T in t]
+        f_th=[(1+W(T,L,B,path=:forthback))/2 for T in t]
         fig=plot(t, f_mc, size=figsize, 
             xlabel="t", ylabel="F", label="monte-carlo sampling",
             # ribbon=@. sqrt(f_mc_err/M)
@@ -52,7 +52,7 @@ end
 
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
-    f3=1/2*(1+φ(T, L, B, path=:forthback))
+    f3=1/2*(1+W(T, L, B, path=:forthback))
     @test isapprox(f1, f3,rtol=1e-2)
     @test isapprox(f2, f3, rtol=1e-2) 
     println("NI:", f1)
@@ -70,7 +70,7 @@ end
     end
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
-    f3=1/2*(1+φ(T0, T1, L,B))
+    f3=1/2*(1+W(T0, T1, L,B))
     @test isapprox(f1, f3,rtol=1e-2)
     @test isapprox(f2, f3, rtol=1e-2) 
     println("NI:", f1)
@@ -89,7 +89,7 @@ end
 
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
-    f3=1/2*(1+φ(T,L,B))
+    f3=1/2*(1+W(T,L,B))
     @test isapprox(f1, f3,rtol=1e-2)
     @test isapprox(f2, f3, rtol=1e-2)
     println("NI:", f1)
@@ -100,7 +100,7 @@ end
     f_mc, f_mc_err=sampling(model, fidelity, M, vector=true)
     t_ni, chi_ni=characteristicfunction(model.R)
     f_ni= @. (1+real(chi_ni))/2
-    f_th=map(T->(1+φ(T,L,B))/2, t)|>collect
+    f_th=map(T->(1+W(T,L,B))/2, t)|>collect
     if visualize
         fig=plot(t,f_mc, size=figsize, 
             xlabel="t", ylabel="F", label="monte-carlo sampling",
