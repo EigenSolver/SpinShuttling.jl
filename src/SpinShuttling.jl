@@ -263,7 +263,7 @@ end
 
 
 """
-Analytical average fidelity of a one-spin shuttling model.
+Analytical dephasing factor of a one-spin shuttling model.
 """
 function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
     κₜ=B.θ[1]
@@ -282,7 +282,7 @@ function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
 end
 
 """
-Analytical average fidelity of a sequenced two-spin EPR pair shuttling model.
+Analytical dephasing factor of a sequenced two-spin EPR pair shuttling model.
 """
 function W(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)::Real
     κₜ=B.θ[1]
@@ -302,7 +302,7 @@ end
 
 
 """
-Theoretical fidelity of a one-spin shuttling model for a pink-brownian noise.
+Analytical dephasing factor of a one-spin shuttling model for a pink-brownian noise.
 """
 function W(T::Real, L::Real, B::PinkBrownianField)::Real
     β= T.*B.γ
