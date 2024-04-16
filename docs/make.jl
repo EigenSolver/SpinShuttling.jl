@@ -10,15 +10,11 @@ makedocs(
         assets = [ asset("assets/logo.svg", class=:ico, islocal = true) ]),
     pages=[
         "Home"=>"index.md",
-        "Manual"=>Any[
-            "Quick Start"=>"guide.md",
-        ]
-        # "examples.md",
-        # "stochastics.md",
-        # "analytics.md",
-        # "integration.md",
-        # "reference.md",
-        # "about.md"
+        # "Tutorial"=>Any[
+            # "Quick Start"=>"guide.md",
+        # ],
+        "Quick Start"=>"guide.md",
+        "Manual"=>"manual.md"
     ],
 )
 
