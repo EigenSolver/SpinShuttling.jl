@@ -4,6 +4,7 @@ using LinearAlgebra
 using Statistics
 using SpecialFunctions
 using QuadGK
+using UnicodePlots: lineplot, lineplot!
 
 include("integration.jl")
 include("analytics.jl")
@@ -48,9 +49,13 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Time Discretization: N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
     println(io, "Shuttling Paths:")
-    for i in eachindex(model.X)
-        println(io, "  X_$(i)(t)=$(model.X[i])")
+    t=range(0, model.T, model.N)
+    fig=lineplot(t, model.X[1].(t); width=20, height=5,
+    name="x1(t)")
+    for i in 2:model.n
+        lineplot!(fig, t, model.X[i].(t), name="x$i(t)")
     end
+    display(fig)
 end
 
 """

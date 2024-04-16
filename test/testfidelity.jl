@@ -1,7 +1,4 @@
-using Plots
-using SpinShuttling: characteristicfunction
 ##
-figsize=(400, 300)
 visualize=true
 
 ##
@@ -37,12 +34,12 @@ end
         f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), fidelity, M)[1] for T in t]
         f_ni=[averagefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
         f_th=[(1+W(T,L,B,path=:forthback))/2 for T in t]
-        fig=plot(t, f_mc, size=figsize, 
-            xlabel="t", ylabel="F", label="monte-carlo sampling",
+        fig=lineplot(t, f_mc,
+            xlabel="t", ylabel="F", name="monte-carlo sampling",
             # ribbon=@. sqrt(f_mc_err/M)
             )
-            plot!(t, f_ni, label="numerical integration")
-            plot!(t, f_th, label="theoretical fidelity")
+            lineplot!(fig, t, f_ni, name="numerical integration")
+            lineplot!(fig, t, f_th, name="theoretical fidelity")
         display(fig)
     end
 
@@ -66,7 +63,7 @@ end
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
     model=TwoSpinModel(T0, T1, L, N, B)
     if visualize
-        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, test fig 4", size=figsize))
+        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, test fig 4"))
     end
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
@@ -102,12 +99,12 @@ end
     f_ni= @. (1+real(chi_ni))/2
     f_th=map(T->(1+W(T,L,B))/2, t)|>collect
     if visualize
-        fig=plot(t,f_mc, size=figsize, 
-            xlabel="t", ylabel="F", label="monte-carlo sampling",
-            ribbon=sqrt.(f_mc_err/M)
+        fig=lineplot(t,f_mc, 
+            xlabel="t", ylabel="F", name="monte-carlo sampling",
+            # ribbon=sqrt.(f_mc_err/M)
             )
-            plot!(t_ni, f_ni, label="numerical integration")
-            plot!(t,f_th, label="theoretical fidelity")
+            lineplot!(fig, t_ni, f_ni, name="numerical integration")
+            lineplot!(fig, t,f_th, name="theoretical fidelity")
         display(fig)
     end
 

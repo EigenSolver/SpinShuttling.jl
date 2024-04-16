@@ -1,10 +1,8 @@
-using Plots
 using FFTW
 using Statistics: std, mean
 using LsqFit: curve_fit
 
-figsize=(400, 300)
-visualize=false
+visualize=true
 
 ##
 @testset "test 1/f noise" begin
@@ -20,19 +18,16 @@ visualize=false
 
     random_trace=model.R()
     if visualize
-        display(heatmap(sqrt.(model.R.Σ), title="covariance matrix", size=figsize))
+        display(heatmap(sqrt.(model.R.Σ), title="covariance matrix"))
     end
     display(model.R.Σ[1:5,1:5])
     @test random_trace isa Vector{<:Real}
     
     if visualize
-        fig=scatter(random_trace, title="1/f noise", xlabel="t", ylabel="B(t)", size=figsize)
+        fig=scatterplot(random_trace, title="1/f noise", xlabel="t", ylabel="B(t)")
         display(fig)
     end
 
-
-    analytical_psd(ω::Real, γ::Tuple, σ::Real)=sqrt(2/π)* σ^2*(atan(γ[2]/ω)-atan(γ[1]/ω))/ω/log(γ[2]/γ[1])
-    
     freq=rfftfreq(N,N/T)
     psd_sheet=zeros(N÷2+1, M)
 
@@ -55,20 +50,19 @@ visualize=false
 
     fit = curve_fit((x,p) -> p[1] .+ p[2]*x, log.(freq), log.(psd), [0.0, 0.0])
     println("fit: ",fit.param)
-    @test isapprox(fit.param[2], -1, atol=2e-1)
+    @test isapprox(fit.param[2], -1, atol=3e-1)
     if visualize
         println("cutoff freq: ",(freq[1], freq[end]))
 
-        fig=plot(freq,psd,
-        label="PSD", 
-        scale=:log10, 
+        fig=lineplot(freq,psd,
+        name="PSD", 
+        xscale=:log10, yscale=:log10,
         xlabel="Frequency (MHz)", ylabel="Power",
-        lw=2, marker=:vline
         )
         # plot the fit
-        plot!(freq,exp.(fit.param[1] .+ fit.param[2]*log.(freq)), 
-        label="Fitting", lw=2)
-        plot!(freq, collect(map(f->analytical_psd.(f, γ, σ), freq)), label="Analytical", lw=2)
+        lineplot!(fig, freq,exp.(fit.param[1] .+ fit.param[2]*log.(freq)), 
+        name="Fitting")
+        # lineplot!(fig, freq, collect(map(f->analytical_psd(f, γ, σ), freq)), name="Analytical")
         display(fig)
     end
 

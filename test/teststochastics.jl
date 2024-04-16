@@ -1,9 +1,7 @@
 using SpinShuttling: covariancepartition, Symmetric, Cholesky, ishermitian, issymmetric, integrate
 using LsqFit
 using Statistics: std, mean
-using Plots
 
-figsize=(400, 300)
 visualize=false
 
 #
@@ -24,9 +22,9 @@ visualize=false
     crosscov=covariancematrix(P1, P2, B)
 
     if visualize
-        display(heatmap(collect(R.Σ), title="covariance matrix, test fig 1", size=figsize)) 
-        display(plot([R(),R(),R()],title="random function, test fig 2", size=figsize))
-        display(heatmap(crosscov, title="cross covariance matrix, test fig 3", size=figsize))
+        display(heatmap(collect(R.Σ), title="covariance matrix, test fig 1")) 
+        display(lineplot([R(),R(),R()],title="random function, test fig 2"))
+        display(heatmap(crosscov, title="cross covariance matrix, test fig 3"))
     end
 
     @test transpose(crosscov) == covariancematrix(P2, P1, B)
