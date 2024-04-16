@@ -1,7 +1,7 @@
 name = "SpinShuttling"
 uuid = "eff49e45-ae6d-44ae-9170-2124a87971c9"
 authors = ["Yuning Zhang"]
-version = "0.1.5"
+version = "0.1.7"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
