@@ -46,7 +46,10 @@ function P4(β::Real,γ::Real)::Real
     return ((ℯ^(-2β)-1)*(γ/β)-2*ℯ^(-β-γ)+ℯ^(-2β)+1)/(1-γ^2/β^2)
 end
 
-
+"""
+Ancillary function for the dephasing of the sequential shuttling pf 
+Bell state under OU sheets of noise
+"""
 function F1(β::Real,γ::Real,τ::Real)::Real
     return P1(β,γ)+P2(β,γ,τ)+2*P3(β,γ,τ)
 end
@@ -55,16 +58,23 @@ function F2(β::Real,γ::Real,τ::Real)::Real
     return C1(β,γ,τ)+C2(β,γ,τ)+C3(β,γ,τ)+C4(β,γ,τ)
 end
 
-function F3(T::Real, γ::Tuple{Real,Real})::Real
-    a(T::Real, γ::Tuple{Real,Real})::Real = expinti(-γ[2]*T)-expinti(-γ[1]*T)
-    b(T::Real, γ::Tuple{Real,Real})::Real = (2- exp(-γ[2]*T))/γ[2]-(2- exp(-γ[1]*T))/γ[1]
-    c(T::Real, γ::Tuple{Real,Real})::Real = (1- exp(-γ[2]*T))/γ[2]^2-(1- exp(-γ[1]*T))/γ[1]^2
-    return (a(T,γ)*T^2-b(T,γ)*T+c(T,γ))/log(γ[2]/γ[1])
+
+"""
+Ancillary function for the dephasing of the pure 1/f (pink) noise
+"""
+function F3(T::Real, ω::Tuple{Real,Real})::Real
+    a(T::Real, ω::Tuple{Real,Real})::Real = expinti(-ω[2]*T)-expinti(-ω[1]*T)
+    b(T::Real, ω::Tuple{Real,Real})::Real = (2- exp(-ω[2]*T))/ω[2]-(2- exp(-ω[1]*T))/ω[1]
+    c(T::Real, ω::Tuple{Real,Real})::Real = (1- exp(-ω[2]*T))/ω[2]^2-(1- exp(-ω[1]*T))/ω[1]^2
+    return (a(T,ω)*T^2-b(T,ω)*T+c(T,ω))/log(ω[2]/ω[1])
 end
 
+"""
+Ancillary function for the dephasing of the Pink-Brownian noise
+"""
 function F4(β::Tuple{Real,Real},γ::Real)::Real
-    a(β::Real,γ::Real)=(1-γ)*log((β+γ)/β)
-    b(β::Real,γ::Real)=γ*(gamma(0,β+γ)+(1-exp(-(β+γ)))/(β+γ))
-    c(β::Real,γ::Real)=exp(-γ)*expinti(-β)-expinti(-(β+γ))
-    return 1/γ^2/log(β[2]/β[1])*(a(β[2],γ)-a(β[1],γ)+b(β[1],γ)-b(β[2],γ)+c(β[2],γ)-c(β[1],γ))
+    F(β::Real,γ::Real)::Real=1/γ^2*(exp(-γ)*expinti(-β)+(γ-1)*(expinti(-β-γ)-log((β+γ)/β))-γ*((1-exp(-β-γ))/(β+γ)))
+    return (F(β[2],γ)-F(β[1],γ))/log(β[2]/β[1])
 end
+
+
