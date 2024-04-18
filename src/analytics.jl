@@ -60,21 +60,16 @@ end
 
 
 """
-Ancillary function for the dephasing of the pure 1/f (pink) noise
-"""
-function F3(T::Real, ω::Tuple{Real,Real})::Real
-    a(T::Real, ω::Tuple{Real,Real})::Real = expinti(-ω[2]*T)-expinti(-ω[1]*T)
-    b(T::Real, ω::Tuple{Real,Real})::Real = (2- exp(-ω[2]*T))/ω[2]-(2- exp(-ω[1]*T))/ω[1]
-    c(T::Real, ω::Tuple{Real,Real})::Real = (1- exp(-ω[2]*T))/ω[2]^2-(1- exp(-ω[1]*T))/ω[1]^2
-    return (a(T,ω)*T^2-b(T,ω)*T+c(T,ω))/log(ω[2]/ω[1])
-end
-
-"""
 Ancillary function for the dephasing of the Pink-Brownian noise
 """
-function F4(β::Tuple{Real,Real},γ::Real)::Real
+function F3(β::Tuple{Real,Real},γ::Real)::Real
+    F(β::Real)=1/2*(expinti(-β)+(1-exp(-β))/β^2+(exp(-β)-2)/β)
     F(β::Real,γ::Real)::Real=1/γ^2*(exp(-γ)*expinti(-β)+(γ-1)*(expinti(-β-γ)-log((β+γ)/β))-γ*((1-exp(-β-γ))/(β+γ)))
-    return (F(β[2],γ)-F(β[1],γ))/log(β[2]/β[1])
+    if γ==0 # pure 1/f noise
+        return (F(β[2])-F(β[1]))/log(β[2]/β[1])
+    else
+        return (F(β[2],γ)-F(β[1],γ))/log(β[2]/β[1])
+    end
 end
 
 

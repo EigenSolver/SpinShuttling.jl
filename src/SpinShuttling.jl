@@ -312,7 +312,7 @@ Analytical dephasing factor of a one-spin shuttling model for a pink-brownian no
 function W(T::Real, L::Real, B::PinkBrownianField)::Real
     β= T.*B.γ
     γ= L*B.θ[1]
-    return exp(-B.σ^2*T^2*F4(β, γ))
+    return exp(-B.σ^2*T^2*F3(β,γ))
 end
 
 end
