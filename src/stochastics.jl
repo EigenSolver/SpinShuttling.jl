@@ -111,13 +111,8 @@ Covariance function of Gaussian random field.
 - `p₂::Point`: time-position array
 - `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkBrownianField`
 """
-
 function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::Real
-    process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
-end
-
-function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::OrnsteinUhlenbeckField)::Real
-    process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
+    process.σ^2 / prod(2* process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
 end
 
 function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
@@ -163,7 +158,7 @@ Auto-Covariance matrix of a Gaussian random process.
 
 """
 function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric
-    N = size(P, 1)
+    N = length(P)
     A = Matrix{Real}(undef, N, N)
     Threads.@threads for i in 1:N
         for j in i:N

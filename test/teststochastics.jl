@@ -2,7 +2,7 @@ using SpinShuttling: covariancepartition, Symmetric, Cholesky, ishermitian, issy
 using LsqFit
 using Statistics: std, mean
 
-visualize=false
+visualize=true
 
 #
 @testset begin "test of random function"
@@ -23,7 +23,7 @@ visualize=false
 
     if visualize
         display(heatmap(collect(R.Σ), title="covariance matrix, test fig 1")) 
-        display(lineplot([R(),R(),R()],title="random function, test fig 2"))
+        display(lineplot(R(),title="random function, test fig 2"))
         display(heatmap(crosscov, title="cross covariance matrix, test fig 3"))
     end
 
@@ -70,8 +70,8 @@ end
     println("mean 1st order:", mean(err1))
     println("mean 2nd order:", mean(err2))
     if visualize
-        fig=plot(err1, xlabel="T", ylabel="error", label="trapezoid")
-        plot!(err2, label="simpson")
+        fig=lineplot(err1, xlabel="T", ylabel="error", name="trapezoid")
+        lineplot!(fig, err2, name="simpson")
         display(fig)
     end
 end

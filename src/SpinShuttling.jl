@@ -50,7 +50,7 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Process Time: T=$(model.T)")
     println(io, "Shuttling Paths:")
     t=range(0, model.T, model.N)
-    fig=lineplot(t, model.X[1].(t); width=20, height=5,
+    fig=lineplot(t, model.X[1].(t); width=30, height=9,
     name="x1(t)")
     for i in 2:model.n
         lineplot!(fig, t, model.X[i].(t), name="x$i(t)")

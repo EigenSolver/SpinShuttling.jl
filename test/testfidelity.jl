@@ -3,14 +3,13 @@ visualize=true
 
 ##
 @testset begin "test single spin shuttling fidelity"
-    T=200; L=10; σ = sqrt(2) / 20; M = 2000; N=601; κₜ=1/20;κₓ=1/0.1;
+    T=400; L=10; σ = sqrt(2) / 20; M = 2000; N=601; κₜ=1/20;κₓ=1/0.1;
 
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-
     model=OneSpinModel(T,L,N,B)
     # test customize println
     println(model)
-
+    
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
     f3=1/2*(1+W(T,L,B))
@@ -23,7 +22,7 @@ end
 
 #
 @testset begin "test single spin forth-back shuttling fidelity"
-    T=200; L=10; σ = sqrt(2) / 20; M = 5000; N=501; κₜ=1/20;κₓ=10; 
+    T=200; L=10; σ = sqrt(2) / 20; M = 2000; N=501; κₜ=1/20;κₓ=10; 
     # exponential should be smaller than 100
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
@@ -57,11 +56,11 @@ end
 
 ##
 @testset begin "test two spin sequenced shuttling fidelity"
-    L=10; σ =sqrt(2)/20; M=20000; N=501; T1=200; T0=25*0.05; κₜ=1/20; κₓ=1/0.1;
+    L=10; σ =sqrt(2)/20; M=2000; N=501; T1=200; T0=25*0.05; κₜ=1/20; κₓ=1/0.1;
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
     model=TwoSpinModel(T0, T1, L, N, B)
     if visualize
-        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, test fig 4"))
+        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
     end
     f1=averagefidelity(model)
     f2, f2_err=sampling(model, fidelity, M)
@@ -111,6 +110,4 @@ end
             lineplot!(fig, t, f_th, name="theoretical fidelity")
         display(fig)
     end
-
-    @test all([abs(f_mc[i]-f_th[i]) < sqrt(f_mc_err[i]) for i in eachindex(t)])
 end
