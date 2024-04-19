@@ -154,9 +154,19 @@ Auto-Covariance matrix of a Gaussian random process.
 - `P::Vector{<:Point}`: time-position array
 - `process::GaussianRandomField`: a Gaussian random field
 
+# Returns
+- `Symmetric{Real}`: auto-covariance matrix
+
 """
 function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric
-    return covariancematrix(P, P, process)
+    N = size(P, 1)
+    A = Matrix{Real}(undef, N, N)
+    Threads.@threads for i in 1:N
+        for j in i:N
+            A[i, j] = covariance(P[i], P[j], process)
+        end
+    end
+    return Symmetric(A)
 end
 
 """

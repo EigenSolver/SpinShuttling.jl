@@ -18,7 +18,7 @@ visualize=false
     t₀=T/5
 
 
-    P1=P; P2=hcat(t, v.*(t.-t₀))
+    P1=P; P2=collect(zip(t, v.*(t.-t₀)))
     crosscov=covariancematrix(P1, P2, B)
 
     if visualize

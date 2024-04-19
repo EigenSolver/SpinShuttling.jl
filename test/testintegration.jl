@@ -1,5 +1,6 @@
-using LinearAlgebra
-include("../src/integration.jl")
+using SpinShuttling: covariancepartition, integrate, expinti
+using Statistics: std, mean
+using QuadGK: quadgk
 
 ##
 @testset begin "test numerical integration"
