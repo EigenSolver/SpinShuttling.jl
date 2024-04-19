@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        julia-version: ['1.8', '1.10', 'nightly']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        include:
+          - julia-version: '1.10'
+            os: ubuntu-latest
+            coverage: true
+        exclude:
+          - julia-version: 'nightly'
+            os: windows-latest
+          - julia-version: 'nightly'
+            os: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.julia-version }}
+      - name: Install dependencies
+        run: julia --project -e 'using Pkg; Pkg.instantiate()'
+      - name: Run tests
+        run: julia --project -e 'using Pkg; Pkg.test()'
+      - name: Upload coverage
+        if: matrix.coverage
+        uses: julia-actions/julia-uploadcodecov@v1
