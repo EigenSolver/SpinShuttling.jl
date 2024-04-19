@@ -67,9 +67,7 @@ function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
     return Λ
 end
 
-"""
 
-"""
 function meanpartition(R::RandomFunction, n::Int)::Vector{Vector{<:Real}}
     N=size(R.P,1)÷n
     return [R.μ[(i-1)*N+1: i*N] for i in 1:n]
@@ -92,7 +90,17 @@ function CompositeRandomFunction(P::Vector{Matrix{Real}}, process::GaussianRando
     return CompositeRandomFunction(RandomFunction(P, process), c)
 end
 
+"""
+Generate a random time series from a Gaussian random field.
+# Example
+```julia
+P = [0.0 0.0; 1.0 1.0; 2.0 2.0; 3.0 3.0]
+process = OrnsteinUhlenbeckField(0.0, [1.0, 1.0], 1.0)
+R = RandomFunction(P, process)
+R()
+```
 
+"""
 function (R::RandomFunction)(randseq::Vector{<:Real})
     return R.μ .+ R.C.L*randseq
 end
@@ -102,6 +110,10 @@ end
 
 """
 Covariance function of Ornstein-Uhlenbeck process.
+
+# Arguments
+- `p₁::Vector{<:Real}`: time-position array
+- `p₂::Vector{<:Real}`: time-position array
 """
 function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::OrnsteinUhlenbeckField)::Real
     process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ - p₂)))
@@ -149,6 +161,10 @@ end
 
 """
 Auto-Covariance matrix of a Gaussian random process.
+# Arguments
+- `P::Matrix{<:Real}`: time-position array
+- `process::GaussianRandomField`: a Gaussian random field
+
 """
 function covariancematrix(P::Matrix{<:Real}, process::GaussianRandomField)::Symmetric
     N = size(P, 1)

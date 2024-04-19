@@ -61,6 +61,7 @@ end
 """
 General one spin shuttling model initialized at initial state |Ψ₀⟩, 
 with arbitrary shuttling path x(t). 
+
 # Arguments
 - `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
@@ -92,6 +93,7 @@ One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
 The qubit is shuttled at constant velocity along a forth-back path 
 `x(t, T, L) = t<T/2 ? 2L/T*t : 2L/T*(T-t)`, 
 with total time `T` in `μs` and length `L` in `μm`.
+
 # Arguments
 - `T::Real`: Maximum time
 - `L::Real`: Length of the path
@@ -112,6 +114,7 @@ end
 """
 General two spin shuttling model initialized at initial state |Ψ₀⟩,
 with arbitrary shuttling paths x₁(t), x₂(t).
+
 # Arguments
 - `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
@@ -181,6 +184,10 @@ end
 """
 Calculate the average fidelity of a spin shuttling model using numerical integration 
 of the covariance matrix.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+
 """
 function averagefidelity(model::ShuttlingModel)::Real
     # model.R is immutable
@@ -200,6 +207,7 @@ end
 """
 Monte-Carlo sampling of any objective function. 
 The function must return Tuple{Real,Real} or Tuple{Vector{<:Real},Vector{<:Real}}
+
 # Arguments
 - `samplingfunction::Function`: The function to be sampled
 - `M::Int`: Monte-Carlo sampling size
@@ -230,6 +238,7 @@ end
 
 """
 Sampling an observable that defines on a specific spin shuttling model 
+
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
 - `objective::Function`: The objective function `objective(mode::ShuttlingModel; randseq)``
@@ -269,6 +278,12 @@ end
 
 """
 Analytical dephasing factor of a one-spin shuttling model.
+
+# Arguments
+- `T::Real`: Total time
+- `L::Real`: Length of the path
+- `B<:GaussianRandomField`: Noise field, Ornstein-Uhlenbeck or Pink-Brownian
+- `path::Symbol`: Path of the shuttling model, `:straight` or `:forthback`
 """
 function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
     κₜ=B.θ[1]
@@ -285,6 +300,13 @@ function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
         error("Path not recognized. Use :straight or :forthback for one-spin shuttling model.")
     end
 end
+
+function W(T::Real, L::Real, B::PinkBrownianField)::Real
+    β= T.*B.γ
+    γ= L*B.θ[1]
+    return exp(-B.σ^2*T^2*F3(β,γ))
+end
+
 
 """
 Analytical dephasing factor of a sequenced two-spin EPR pair shuttling model.
@@ -303,16 +325,6 @@ function W(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)
     else
         error("Path not recognized. Use :sequenced or :parallel for two-spin EPR pair shuttling model.")
     end
-end
-
-
-"""
-Analytical dephasing factor of a one-spin shuttling model for a pink-brownian noise.
-"""
-function W(T::Real, L::Real, B::PinkBrownianField)::Real
-    β= T.*B.γ
-    γ= L*B.θ[1]
-    return exp(-B.σ^2*T^2*F3(β,γ))
 end
 
 end

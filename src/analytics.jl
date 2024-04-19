@@ -58,9 +58,8 @@ function F2(β::Real,γ::Real,τ::Real)::Real
     return C1(β,γ,τ)+C2(β,γ,τ)+C3(β,γ,τ)+C4(β,γ,τ)
 end
 
-
 """
-Ancillary function for the dephasing of the Pink-Brownian noise
+Ancillary function for the dephasing of the Pink-Brownian noise.
 """
 function F3(β::Tuple{Real,Real},γ::Real)::Real
     F(β::Real)=1/2*(expinti(-β)+(1-exp(-β))/β^2+(exp(-β)-2)/β)
@@ -71,5 +70,4 @@ function F3(β::Tuple{Real,Real},γ::Real)::Real
         return (F(β[2],γ)-F(β[1],γ))/log(β[2]/β[1])
     end
 end
-
-
+   
