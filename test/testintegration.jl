@@ -1,3 +1,6 @@
+using LinearAlgebra
+include("../src/integration.jl")
+
 ##
 @testset begin "test numerical integration"
     f = @. x -> sqrt(x)
