@@ -1,7 +1,7 @@
 abstract type RandomField end
 abstract type GaussianRandomField <: RandomField end # n-dimensional
 
-Point = Tuple{Vararg{Real}}
+Point{N} = Tuple{Vararg{Real,N}}
 
 """
 Ornstein-Uhlenbeck field, the correlation function of which is 
@@ -85,7 +85,8 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     N=size(R.Σ,1)
     μ = sum(c .*meanpartition(R, n))
     Σ = Symmetric(sum((c*c') .* covariancepartition(R, n)))
-    return RandomFunction(μ, R.P[1:(N÷n)], Σ, cholesky(Σ))
+    t=[(p[1],) for p in R.P[1:(N÷n)]]
+    return RandomFunction(μ, t, Σ, cholesky(Σ))
 end
 
 function CompositeRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
@@ -115,6 +116,9 @@ function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::
     process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
 end
 
+function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::OrnsteinUhlenbeckField)::Real
+    process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
+end
 
 function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
     t₁ = p₁[1]
@@ -123,7 +127,7 @@ function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
     x₂ = p₂[2:end]
     γ = process.γ
     cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) : 1
-    cov_brown = exp(-dot(process.θ, abs.(x₁ - x₂)))
+    cov_brown = exp(-dot(process.θ, abs.(x₁ .- x₂)))
     return process.σ^2 * cov_pink * cov_brown
 end
 

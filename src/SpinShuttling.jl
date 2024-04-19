@@ -198,8 +198,8 @@ function averagefidelity(model::ShuttlingModel)::Real
     elseif model.n > 2
         error("The number of spins is not supported")
     end
-    χ = real(characteristicvalue(R))
-    F = @. 1 / 2 * (1 + χ)
+    W = real(characteristicvalue(R))
+    F = @. 1 / 2 * (1 + W)
     return F
 end
 

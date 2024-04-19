@@ -1,12 +1,10 @@
 ##
 visualize=true
 
-#
+##
 @testset begin "test single spin shuttling fidelity"
-    T=400; L=10; σ = sqrt(2) / 20; M = 20000; N=601; κₜ=1/20;κₓ=1/0.1;
-    v=L/T;
-    t=range(0, T, N)
-    P=collect(zip(t, v.*t))
+    T=200; L=10; σ = sqrt(2) / 20; M = 2000; N=601; κₜ=1/20;κₓ=1/0.1;
+
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
     model=OneSpinModel(T,L,N,B)
