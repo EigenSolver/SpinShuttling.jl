@@ -9,7 +9,7 @@ visualize=false
     T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=11; κₜ=1/20;κₓ=1/0.1;
     v=L/T;
     t=range(0, T, N)
-    P=hcat(t, v.*t)
+    P=collect(zip(t, v.*t))
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
     R=RandomFunction(P , B)
     @test R() isa Vector{<:Real}
@@ -18,7 +18,7 @@ visualize=false
     t₀=T/5
 
 
-    P1=hcat(t, v.*t); P2=hcat(t, v.*(t.-t₀))
+    P1=P; P2=hcat(t, v.*(t.-t₀))
     crosscov=covariancematrix(P1, P2, B)
 
     if visualize
@@ -29,8 +29,8 @@ visualize=false
 
     @test transpose(crosscov) == covariancematrix(P2, P1, B)
 
-    P=vcat(P1,P2)
-    R=RandomFunction(P,B)
+    P_comp=vcat(P1,P2)
+    R=RandomFunction(P_comp,B)
     c=[1,1]
     RΣ=sum(c'*c .* covariancepartition(R, 2))
     @test size(RΣ) == (N,N)
@@ -56,7 +56,7 @@ end
     i=1
     for T in range(1, 50, length=M)
         t=range(0, T, N)
-        P=hcat(t, v.*t)
+        P=collect(zip(t, v.*t))
         R=RandomFunction(P , B)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
@@ -94,7 +94,7 @@ end
     T_range=range(10, 20, length=M)
     for T in T_range
         t=range(0, T, N)
-        P=hcat(t, v.*t)
+        P=collect(zip(t, v.*t))
         R=RandomFunction(P , B)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 

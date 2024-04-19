@@ -73,7 +73,7 @@ function OneSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
     B::GaussianRandomField, x::Function)
 
     t = range(0, T, N)
-    P = hcat(t, x.(t))
+    P = collect(zip(t, x.(t)))
     R = RandomFunction(P, B)
     model = ShuttlingModel(1, Ψ, T, N, B, [x], R)
     return model
@@ -128,7 +128,7 @@ function TwoSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
 
     X = [x₁, x₂]
     t = range(0, T, N)
-    P = vcat(hcat(t, x₁.(t)), hcat(t, x₂.(t)))
+    P = vcat(collect(zip(t, x₁.(t))), collect(zip(t, x₂.(t))))
     R = RandomFunction(P, B)
     model = ShuttlingModel(2, Ψ, T, N, B, X, R)
     return model

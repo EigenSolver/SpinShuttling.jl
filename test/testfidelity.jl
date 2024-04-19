@@ -6,7 +6,7 @@ visualize=true
     T=400; L=10; σ = sqrt(2) / 20; M = 20000; N=601; κₜ=1/20;κₓ=1/0.1;
     v=L/T;
     t=range(0, T, N)
-    P=hcat(t, v.*t)
+    P=collect(zip(t, v.*t))
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
     model=OneSpinModel(T,L,N,B)

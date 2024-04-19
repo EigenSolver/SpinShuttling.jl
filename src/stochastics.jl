@@ -1,6 +1,8 @@
 abstract type RandomField end
 abstract type GaussianRandomField <: RandomField end # n-dimensional
 
+Point = Tuple{Vararg{Real}}
+
 """
 Ornstein-Uhlenbeck field, the correlation function of which is 
 `σ^2 * exp(-|t₁ - t₂|/θ_t) * exp(-|x₁-x₂|/θ_x)` 
@@ -31,22 +33,22 @@ a Gaussian random process traced from a Gaussian random field.
 
 # Arguments
 - `μ::Vector{<:Real}`: mean of the process
-- `P::Array{<:Real}`: time-position array
+- `P::Vector{<:Point}`: time-position array
 - `Σ::Symmetric{<:Real}`: covariance matrices
-- `C::Cholesky`: cholesky decomposition of the covariance matrices
+- `C::Cholesky`: Cholesky decomposition of the covariance matrices
 """
 struct RandomFunction
     μ::Vector{<:Real}
-    P::Array{<:Real} # sample trace
+    P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
     C::Cholesky # decomposition
-    function RandomFunction(P::Matrix{<:Real}, process::GaussianRandomField)
-        μ=process.μ isa Function ? process.μ(P) : repeat([process.μ], size(P, 1))
+    function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField)
+        μ=process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ=covariancematrix(P, process)
         return new(μ, P, Σ, cholesky(Σ))
     end
 
-    function RandomFunction(μ::Vector{<:Real}, P::Array{<:Real}, Σ::Symmetric{<:Real}, C::Cholesky)
+    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, C::Cholesky)
         new(μ, P, Σ, C)
     end
 end
@@ -57,7 +59,7 @@ Divide the covariance matrix of a direct summed random function into partitions.
 """
 function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
     Λ=Matrix{Matrix{<:Real}}(undef, n, n)
-    N=size(R.P,1)÷n
+    N=length(R.P)÷n
     Σ(i::Int,j::Int) = R.Σ[(i-1)*N+1: i*N , (j-1)*N+1: j*N]
     for i in 1:n
         for j in 1:n
@@ -69,7 +71,7 @@ end
 
 
 function meanpartition(R::RandomFunction, n::Int)::Vector{Vector{<:Real}}
-    N=size(R.P,1)÷n
+    N=length(R.P)÷n
     return [R.μ[(i-1)*N+1: i*N] for i in 1:n]
 end
 
@@ -83,23 +85,15 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     N=size(R.Σ,1)
     μ = sum(c .*meanpartition(R, n))
     Σ = Symmetric(sum((c*c') .* covariancepartition(R, n)))
-    return RandomFunction(μ, R.P[1:(N÷n),1], Σ, cholesky(Σ))
+    return RandomFunction(μ, R.P[1:(N÷n)], Σ, cholesky(Σ))
 end
 
-function CompositeRandomFunction(P::Vector{Matrix{Real}}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
+function CompositeRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
     return CompositeRandomFunction(RandomFunction(P, process), c)
 end
 
 """
 Generate a random time series from a Gaussian random field.
-# Example
-```julia
-P = [0.0 0.0; 1.0 1.0; 2.0 2.0; 3.0 3.0]
-process = OrnsteinUhlenbeckField(0.0, [1.0, 1.0], 1.0)
-R = RandomFunction(P, process)
-R()
-```
-
 """
 function (R::RandomFunction)(randseq::Vector{<:Real})
     return R.μ .+ R.C.L*randseq
@@ -109,25 +103,20 @@ end
 
 
 """
-Covariance function of Ornstein-Uhlenbeck process.
+Covariance function of Gaussian random field.
 
 # Arguments
-- `p₁::Vector{<:Real}`: time-position array
-- `p₂::Vector{<:Real}`: time-position array
+- `p₁::Point`: time-position array
+- `p₂::Point`: time-position array
+- `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkBrownianField`
 """
-function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::OrnsteinUhlenbeckField)::Real
-    process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ - p₂)))
-end
 
-function covariance(p₁::Tuple, p₂::Tuple, process::OrnsteinUhlenbeckField)::Real
+function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::Real
     process.σ^2 / 4*prod( process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
 end
 
 
-"""
-Covariance function of Pink-Brownian process.
-"""
-function covariance(p₁::Vector{<:Real}, p₂::Vector{<:Real}, process::PinkBrownianField)::Real
+function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
     t₁ = p₁[1]
     t₂ = p₂[1]
     x₁ = p₁[2:end]
@@ -143,17 +132,17 @@ Covariance matrix of a Gaussian random field.
 When `P₁=P₂`, it is the auto-covariance matrix of a Gaussian random process. 
 When `P₁!=P₂`, it is the cross-covariance matrix between two Gaussian random processes.
 # Arguments
-- `P₁::Matrix{<:Real}`: time-position array
-- `P₂::Matrix{<:Real}`: time-position array
+- `P₁::Vector{<:Point}`: time-position array
+- `P₂::Vector{<:Point}`: time-position array
 - `process::GaussianRandomField`: a Gaussian random field
 """
-function covariancematrix(P₁::Matrix{<:Real}, P₂::Matrix{<:Real}, process::GaussianRandomField)::Matrix{Real}
-    @assert size(P₁) == size(P₂)
-    N = size(P₁, 1)
+function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, process::GaussianRandomField)::Matrix{Real}
+    @assert length(P₁) == length(P₂)
+    N = length(P₁)
     A = Matrix{Real}(undef, N, N)
     Threads.@threads for i in 1:N
         for j in 1:N
-            A[i, j] = covariance(P₁[i, :], P₂[j, :], process)
+            A[i, j] = covariance(P₁[i], P₂[j], process)
         end
     end
     return A
@@ -162,31 +151,12 @@ end
 """
 Auto-Covariance matrix of a Gaussian random process.
 # Arguments
-- `P::Matrix{<:Real}`: time-position array
+- `P::Vector{<:Point}`: time-position array
 - `process::GaussianRandomField`: a Gaussian random field
 
 """
-function covariancematrix(P::Matrix{<:Real}, process::GaussianRandomField)::Symmetric
-    N = size(P, 1)
-    A = Matrix{Real}(undef, N, N)
-    Threads.@threads for i in 1:N
-        for j in i:N
-            A[i, j] = covariance(P[i,:], P[j, :], process)
-        end
-    end
-    return Symmetric(A)
-end
-
-
-function covariancematrix(P::Vector{<:Tuple{<:Real,<:Real}}, process::GaussianRandomField)::Symmetric
-    N = size(P, 1)
-    A = Matrix{Real}(undef, N, N)
-    Threads.@threads for i in 1:N
-        for j in i:N
-            A[i, j] = covariance(P[i], P[j], process)
-        end
-    end
-    return Symmetric(A)
+function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric
+    return covariancematrix(P, P, process)
 end
 
 """
@@ -196,11 +166,11 @@ Using Simpson's rule by default.
 """
 function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Number}}
     # need further optimization
-    dt=R.P[2,1]-R.P[1,1]
+    dt=R.P[2][1]-R.P[1][1]
     N=size(R.Σ,1)
     @assert N%2==1
     χ(j::Int)=exp.(1im*integrate(view(R.μ, 1:j), dt))*exp.(-integrate(view(R.Σ, 1:j,1:j), dt, dt)/2)
-    t=R.P[2:2:N-1,1]
+    t=[p[1] for p in R.P[2:2:N-1]]
     f=[χ(j) for j in 3:2:N] # only for simpson's rule
     return (t,f)
 end
@@ -211,6 +181,6 @@ numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
 function characteristicvalue(R::RandomFunction)::Number
-    dt=R.P[2,1]-R.P[1,1]
+    dt=R.P[2][1]-R.P[1][1]
     return exp.(1im*integrate(R.μ, dt))*exp.(-integrate((@view R.Σ[:,:]), dt, dt)/2)
 end

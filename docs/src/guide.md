@@ -3,7 +3,7 @@
 ## Generating a noise series from a stochastic process
 Construct time-position array and define a Gaussian random field
 ```julia
-P=hcat(t, v.*t) 
+P=collect(zip(t, v.*t))
 B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ) 
 ```
 Define a Gaussian random process (random function) by projecting the Gaussian random field along the time-space array `P`. Then we can use `R()` to invoke the process and generating a random time series.
