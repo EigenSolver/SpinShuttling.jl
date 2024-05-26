@@ -139,7 +139,7 @@ function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, process:
     @assert length(P₁) == length(P₂)
     N = length(P₁)
     A = Matrix{Real}(undef, N, N)
-    Threads.@threads for i in 1:N
+    @threads for i in 1:N
         for j in 1:N
             A[i, j] = covariance(P₁[i], P₂[j], process)
         end
@@ -160,7 +160,7 @@ Auto-Covariance matrix of a Gaussian random process.
 function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric
     N = length(P)
     A = Matrix{Real}(undef, N, N)
-    Threads.@threads for i in 1:N
+    @threads for i in 1:N
         for j in i:N
             A[i, j] = covariance(P[i], P[j], process)
         end

@@ -5,6 +5,7 @@ using Statistics
 using SpecialFunctions
 using QuadGK
 using UnicodePlots: lineplot, lineplot!
+using Base.Threads
 
 include("integration.jl")
 include("analytics.jl")
@@ -225,16 +226,41 @@ https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
 
 """
 function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tuple{Vector{<:Real},Vector{<:Real}}}
+    if nthreads() > 1
+        return parallelsampling(samplingfunction, M)
+    end
     N = length(samplingfunction(1))
     A = N > 1 ? zeros(N) : 0
     Q = copy(A)
-    Threads.@threads for k in 1:M
+    for k in 1:M
         x = samplingfunction(k)::Union{Real,Vector{<:Real}}
         Q = Q +(k-1)/k*(x-A).^ 2
         A = A + (x-A)/k
     end
     return A, Q / (M - 1)
 end
+
+function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tuple{Vector{<:Real},Vector{<:Real}}}
+    N = length(samplingfunction(1))
+    if N > 1
+        cache = zeros(N, M)
+        @threads for i in 1:M
+            cache[:, i] .= samplingfunction(i)
+        end
+        A = mean(cache, dims=2)
+        Q = var(cache, dims=2)
+        return A, Q 
+    else
+        cache = zeros(M)
+        @threads for i in 1:M
+            cache[i] = samplingfunction(i)
+        end
+        A = mean(cache)
+        Q = var(cache)
+        return A, Q 
+    end
+end
+
 
 """
 Sampling an observable that defines on a specific spin shuttling model 
