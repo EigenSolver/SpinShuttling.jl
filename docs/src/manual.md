@@ -23,6 +23,9 @@ TwoSpinModel
 TwoSpinParallelModel
 ```
 
+```@docs
+ShuttlingModel
+```
 
 ```@docs
 dephasingmatrix
