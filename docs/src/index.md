@@ -3,7 +3,6 @@
 *Simulate the multiple-spin shuttling problem under correlated stochastic noise.*
 
 ## Installation
-<!-- ### Github Repository -->
 `SpinShuttling.jl` can be installed by cloning the repository from github.
 ```shell
 git clone https://github.com/EigenSolver/SpinShuttling.jl.git
@@ -16,11 +15,6 @@ From the Julia REPL, type `]` to enter the Pkg REPL mode and run
 ```julia
 pkg> add .
 ```
-<!-- ### Julia Package Manager
-From the Julia REPL, type `]` to enter the Pkg REPL mode and run
-```shell
-pkg> add SpinShuttling
-``` -->
 
 ## What does this package do
 This package provides a set of abstractions and numericals tools to simulating dynamics of multi-spin system under correlated noises, based on the Gaussian random field approach. 
