@@ -31,7 +31,6 @@ specified by the paths of the shuttled spins.
 - `X::Vector{Function}`: Shuttling paths, the length of the vector must be `n
 - `R::RandomFunction`: Random function of the sampled noises on paths
 """
-
 struct ShuttlingModel
     n::Int # number of spins
     Ψ::Vector{<:Number}

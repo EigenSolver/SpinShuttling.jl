@@ -8,6 +8,10 @@ CurrentModule = SpinShuttling
 ### Spin Shuttling Models
 
 ```@docs
+ShuttlingModel
+```
+
+```@docs
 OneSpinModel
 ```
 
@@ -21,10 +25,6 @@ TwoSpinModel
 
 ```@docs
 TwoSpinParallelModel
-```
-
-```@docs
-ShuttlingModel
 ```
 
 ```@docs
