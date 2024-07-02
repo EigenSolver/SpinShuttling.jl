@@ -23,7 +23,15 @@ TwoSpinModel
 TwoSpinParallelModel
 ```
 
-### Fidelity Metric
+
+```@docs
+dephasingmatrix
+```
+
+```@docs
+fidelity
+```
+
 
 ```@docs
 fidelity
