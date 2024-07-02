@@ -14,6 +14,7 @@ struct OrnsteinUhlenbeckField <: GaussianRandomField
     σ::Real # covariance
 end
 
+
 """
 Pink-Brownian Field, the correlation function of which is
 `σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-|x₁-x₂|/θ)`
@@ -56,6 +57,13 @@ end
 
 """
 Divide the covariance matrix of a direct summed random function into partitions. 
+
+# Arguments
+- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `n::Int`: number of partitions or spins
+
+# Returns
+- `Matrix{Matrix{<:Real}}`: a matrix of covariance matrices
 """
 function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
     Λ=Matrix{Matrix{<:Real}}(undef, n, n)
@@ -69,7 +77,15 @@ function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
     return Λ
 end
 
+"""
 
+# Arguments
+- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `n::Int`: number of partitions or spins
+
+# Returns
+- `Vector{Vector{<:Real}}`: a vector of mean vectors
+"""
 function meanpartition(R::RandomFunction, n::Int)::Vector{Vector{<:Real}}
     N=length(R.P)÷n
     return [R.μ[(i-1)*N+1: i*N] for i in 1:n]
@@ -79,6 +95,13 @@ end
 Create a new random function composed by a linear combination of random processes.
 The input random function represents the direct sum of these processes. 
 The output random function is a tensor contraction from the input.
+
+# Arguments
+- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `c::Vector{Int}`: a vector of coefficients
+
+# Returns
+- `RandomFunction`: a new random function composed by a linear combination of random processes
 """
 function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunction
     n=length(c)
@@ -89,19 +112,23 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     return RandomFunction(μ, t, Σ, cholesky(Σ))
 end
 
+
 function CompositeRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
     return CompositeRandomFunction(RandomFunction(P, process), c)
 end
 
 """
 Generate a random time series from a Gaussian random field.
+
+`R()` generates a random time series from a Gaussian random field `R`
+`R(randseq)` generates a random time series from a Gaussian random field `R` with a given random sequence `randseq`.
 """
 function (R::RandomFunction)(randseq::Vector{<:Real})
     return R.μ .+ R.C.L*randseq
 end
 
 (R::RandomFunction)()=R(randn(size(R.Σ, 1)))
-
+ 
 
 """
 Covariance function of Gaussian random field.
@@ -157,7 +184,7 @@ Auto-Covariance matrix of a Gaussian random process.
 - `Symmetric{Real}`: auto-covariance matrix
 
 """
-function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric
+function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric{<:Real}
     N = length(P)
     A = Matrix{Real}(undef, N, N)
     @threads for i in 1:N

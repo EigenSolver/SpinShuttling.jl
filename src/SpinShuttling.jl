@@ -15,7 +15,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction,
 OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling, characteristicfunction, characteristicvalue
-export covariance, covariancematrix
+export dephasingmatrix, covariance, covariancematrix
 export W
 
 """
@@ -276,6 +276,45 @@ function sampling(model::ShuttlingModel, objective::Function, M::Int; vector::Bo
     return sampling(samplingfunction, M)
 end
 
+"""
+
+# Arguments
+- `i::Int`: index of qubits, range from (1,n)
+- `p::Int`: index of spin state, range from (1,2^n)
+- `n::Int`: number of spins
+"""
+function m(i::Int,p::Int,n::Int)
+    1/2-digits(p, base=2, pad=n)[i]
+end
+
+"""
+Calculate the dephasing matrix of a given spin shuttling model.
+"""
+function dephasingmatrix(model::ShuttlingModel)::Symmetric{<:Real}
+    n=model.n
+    W=zeros(2^n,2^n)
+    for j in 1:2^n
+        W[j,j]=1
+        for k in 1:j-1
+            c=[trunc(Int,m(i,j-1,n)-m(i,k-1,n)) for i in 1:n]
+            R = CompositeRandomFunction(model.R, c)
+            W[j,k] = characteristicvalue(R)
+            W[k,j] = W[j,k]
+        end
+    end
+    return Symmetric(W)
+end
+
+function dephasingcoeffs(n::Int)::Array{Real,3}
+    M=zeros(2^n,2^n, n)
+    for j in 1:2^n
+        for k in 1:2^n
+            c=[m(i,j-1,n)-m(i,k-1,n) for i in 1:n]
+            M[j,k, :] = c
+        end
+    end
+    return M
+end
 
 """
 Sample a phase integral of the process. 
