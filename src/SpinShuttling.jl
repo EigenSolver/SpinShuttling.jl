@@ -11,9 +11,9 @@ include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
 
-export ShuttlingModel, OneSpinModel, TwoSpinModel, 
-OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction,
-OrnsteinUhlenbeckField, PinkBrownianField
+export ShuttlingModel, OneSpinModel, TwoSpinModel,
+    OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction,
+    OrnsteinUhlenbeckField, PinkBrownianField
 export averagefidelity, fidelity, sampling, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
 export W
@@ -49,9 +49,9 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Time Discretization: N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
     println(io, "Shuttling Paths:")
-    t=range(0, model.T, model.N)
-    fig=lineplot(t, model.X[1].(t); width=30, height=9,
-    name="x1(t)")
+    t = range(0, model.T, model.N)
+    fig = lineplot(t, model.X[1].(t); width=30, height=9,
+        name="x1(t)")
     for i in 2:model.n
         lineplot!(fig, t, model.X[i].(t), name="x$i(t)")
     end
@@ -101,12 +101,12 @@ with total time `T` in `μs` and length `L` in `μm`.
 - `B::GaussianRandomField`: Noise field
 - `v::Real`: Velocity of the shuttling
 """
-function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField) 
-    x(t::Real, v::Real, L::Real)::Real = (t=t%(2L/v); v*t < L ? v*t : 2L-v*t)
-    return OneSpinModel(1 / √2 * [1, 1], t, N, B, τ -> x(τ, 2L/T, L))
+function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField)
+    x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
+    return OneSpinModel(1 / √2 * [1, 1], t, N, B, τ -> x(τ, 2L / T, L))
 end
 
-function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField) 
+function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
     return OneSpinForthBackModel(T, T, L, N, B)
 end
 
@@ -174,7 +174,7 @@ The total shuttling time is `T` and the length of the path is `L` in `μm`.
 """
 function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
     B::GaussianRandomField)
-    @assert length(B.θ)>=3 
+    @assert length(B.θ) >= 3
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
     Ψ = 1 / √2 .* [0, 1, -1, 0]
@@ -233,8 +233,8 @@ function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tu
     Q = copy(A)
     for k in 1:M
         x = samplingfunction(k)::Union{Real,Vector{<:Real}}
-        Q = Q +(k-1)/k*(x-A).^ 2
-        A = A + (x-A)/k
+        Q = Q + (k - 1) / k * (x - A) .^ 2
+        A = A + (x - A) / k
     end
     return A, Q / (M - 1)
 end
@@ -248,7 +248,7 @@ function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,
         end
         A = mean(cache, dims=2)
         Q = var(cache, dims=2)
-        return A, Q 
+        return A, Q
     else
         cache = zeros(M)
         @threads for i in 1:M
@@ -256,7 +256,7 @@ function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,
         end
         A = mean(cache)
         Q = var(cache)
-        return A, Q 
+        return A, Q
     end
 end
 
@@ -282,34 +282,34 @@ end
 - `p::Int`: index of spin state, range from (1,2^n)
 - `n::Int`: number of spins
 """
-function m(i::Int,p::Int,n::Int)
-    1/2-digits(p, base=2, pad=n)[i]
+function m(i::Int, p::Int, n::Int)
+    1 / 2 - digits(p, base=2, pad=n)[i]
 end
 
 """
 Calculate the dephasing matrix of a given spin shuttling model.
 """
 function dephasingmatrix(model::ShuttlingModel)::Symmetric{<:Real}
-    n=model.n
-    W=zeros(2^n,2^n)
+    n = model.n
+    W = zeros(2^n, 2^n)
     for j in 1:2^n
-        W[j,j]=1
+        W[j, j] = 1
         for k in 1:j-1
-            c=[trunc(Int,m(i,j-1,n)-m(i,k-1,n)) for i in 1:n]
+            c = [trunc(Int, m(i, j - 1, n) - m(i, k - 1, n)) for i in 1:n]
             R = CompositeRandomFunction(model.R, c)
-            W[j,k] = characteristicvalue(R)
-            W[k,j] = W[j,k]
+            W[j, k] = characteristicvalue(R)
+            W[k, j] = W[j, k]
         end
     end
     return Symmetric(W)
 end
 
 function dephasingcoeffs(n::Int)::Array{Real,3}
-    M=zeros(2^n,2^n, n)
+    M = zeros(2^n, 2^n, n)
     for j in 1:2^n
         for k in 1:2^n
-            c=[m(i,j-1,n)-m(i,k-1,n) for i in 1:n]
-            M[j,k, :] = c
+            c = [m(i, j - 1, n) - m(i, k - 1, n) for i in 1:n]
+            M[j, k, :] = c
         end
     end
     return M
@@ -330,11 +330,11 @@ function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=f
         Z = A
     elseif model.n == 2
         # only valid for two-spin EPR pair, ψ=1/√2(|↑↓⟩-|↓↑⟩)
-        Z = A[1:N] - A[N+1:end] 
+        Z = A[1:N] - A[N+1:end]
     else
         Z = missing
     end
-    ϕ = vector ? cumsum(Z)* dt : sum(Z) * dt
+    ϕ = vector ? cumsum(Z) * dt : sum(Z) * dt
     return (1 .+ cos.(ϕ)) / 2
 end
 
@@ -349,41 +349,41 @@ Analytical dephasing factor of a one-spin shuttling model.
 - `B<:GaussianRandomField`: Noise field, Ornstein-Uhlenbeck or Pink-Brownian
 - `path::Symbol`: Path of the shuttling model, `:straight` or `:forthback`
 """
-function W(T::Real,L::Real,B::OrnsteinUhlenbeckField; path=:straight)::Real
-    κₜ=B.θ[1]
-    κₓ=B.θ[2]
-    σ =B.σ
-    β = κₜ*T
-    γ = κₓ*L
+function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
+    κₜ = B.θ[1]
+    κₓ = B.θ[2]
+    σ = B.σ
+    β = κₜ * T
+    γ = κₓ * L
     if path == :straight
-        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*P1(β, γ)/2)
+        return exp(-σ^2 / (4 * κₜ * κₓ) / κₜ^2 * P1(β, γ) / 2)
     elseif path == :forthback
-        β/=2
-        return exp(- σ^2/(4*κₜ*κₓ)/κₜ^2*(P1(β, γ)+P4(β,γ)))
+        β /= 2
+        return exp(-σ^2 / (4 * κₜ * κₓ) / κₜ^2 * (P1(β, γ) + P4(β, γ)))
     else
         error("Path not recognized. Use :straight or :forthback for one-spin shuttling model.")
     end
 end
 
 function W(T::Real, L::Real, B::PinkBrownianField)::Real
-    β= T.*B.γ
-    γ= L*B.θ[1]
-    return exp(-B.σ^2*T^2*F3(β,γ))
+    β = T .* B.γ
+    γ = L * B.θ[1]
+    return exp(-B.σ^2 * T^2 * F3(β, γ))
 end
 
 
 """
 Analytical dephasing factor of a sequenced two-spin EPR pair shuttling model.
 """
-function W(T0::Real,T1::Real,L::Real,B::OrnsteinUhlenbeckField; path=:sequenced)::Real
-    κₜ=B.θ[1]
-    κₓ=B.θ[2]
-    σ =B.σ
-    τ = κₜ*T0
-    β = κₜ*T1
-    γ = κₓ*L
+function W(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField; path=:sequenced)::Real
+    κₜ = B.θ[1]
+    κₓ = B.θ[2]
+    σ = B.σ
+    τ = κₜ * T0
+    β = κₜ * T1
+    γ = κₓ * L
     if path == :sequenced
-        return exp(-σ^2/(4*κₜ*κₓ)/κₜ^2*(F1(β, γ, τ)-F2(β, γ, τ)))
+        return exp(-σ^2 / (4 * κₜ * κₓ) / κₜ^2 * (F1(β, γ, τ) - F2(β, γ, τ)))
     elseif path == :parallel
         missing("Parallel path not implemented yet.")
     else

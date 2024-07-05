@@ -1,4 +1,4 @@
-const ArrayOrSubArray{T,N} = Union{Array{T,N}, SubArray{T,N}}
+const ArrayOrSubArray{T,N} = Union{Array{T,N},SubArray{T,N}}
 
 """
 1D Simpson integral of function `f(x)` on a given array of `y=f(x₁), f(x₂)...` with constant
@@ -11,13 +11,13 @@ increment `h`
 
 """
 function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:simpson)::Real
-    n = length(y)-1
-    if method==:simpson
+    n = length(y) - 1
+    if method == :simpson
         n % 2 == 0 || error("`y` length (number of intervals) must be odd")
-        s = sum(y[1:2:n] + 4*y[2:2:n] + y[3:2:n+1])
-        return h/3 * s
-    elseif method==:trapezoid
-        s = sum(y[1:n]+y[2:n+1])
+        s = sum(y[1:2:n] + 4 * y[2:2:n] + y[3:2:n+1])
+        return h / 3 * s
+    elseif method == :trapezoid
+        s = sum(y[1:n] + y[2:n+1])
         return h / 2 * s
     else
         error("invalid integration method specified!")
@@ -42,10 +42,10 @@ end
 result = integrate(sin, 0, π, 101, method=:simpson)
 ```
 """
-function integrate(f::Function, a::Real, b::Real, n::Int; 
+function integrate(f::Function, a::Real, b::Real, n::Int;
     method::Symbol=:simpson)::Real
-    h = (b - a) / (n-1)
-    y = f.(range(a,b,n))
+    h = (b - a) / (n - 1)
+    y = f.(range(a, b, n))
     return integrate(y, h, method=method)
 end
 
@@ -70,10 +70,10 @@ end
 result = integrate((x, y) -> x * y, (0, 1, 50), (0, 1, 50), method=:simpson)
 ```
 """
-function integrate(f::Function, x_range::Tuple{Real,Real,Int}, y_range::Tuple{Real,Real,Int}; 
+function integrate(f::Function, x_range::Tuple{Real,Real,Int}, y_range::Tuple{Real,Real,Int};
     method::Symbol=:simpson)::Real
-    g = y-> integrate(x->f(x,y), x_range, method = method)
-    return integrate(g, y_range, method = method)
+    g = y -> integrate(x -> f(x, y), x_range, method=method)
+    return integrate(g, y_range, method=method)
 end
 
 """
@@ -95,21 +95,21 @@ function integrate(z::ArrayOrSubArray{<:Real,2}, h_x::Real, h_y::Real; method::S
     return integrate(integral_x_direction, h_y, method=method)
 end
 
-integrate(z::ArrayOrSubArray{<:Real,2}, h; method::Symbol=:simpson)=integrate(z, h, h; method=method)
+integrate(z::ArrayOrSubArray{<:Real,2}, h; method::Symbol=:simpson) = integrate(z, h, h; method=method)
 
 """
 Special methods for the double integral on symmetric matrix with singularity on diagonal entries.
 """
 function integrate(z::Symmetric, h::Real)::Real
     n, _ = size(z)
-    @assert n%2 == 1 "The matrix must be of odd size"
-    m=(n+1)÷2
-    _integrate(x::ArrayOrSubArray) = integrate(x, h; method = :trapezoid)
+    @assert n % 2 == 1 "The matrix must be of odd size"
+    m = (n + 1) ÷ 2
+    _integrate(x::ArrayOrSubArray) = integrate(x, h; method=:trapezoid)
     # Integrate along upper half trapzoid
-    int_upper = [_integrate((@view z[j:n, j])) for j = 1:m]|> _integrate
+    int_upper = [_integrate((@view z[j:n, j])) for j = 1:m] |> _integrate
     # Integrate along lower half trapzoid
-    int_lower = [_integrate((@view z[1:j, j])) for j = m:n]|> _integrate
+    int_lower = [_integrate((@view z[1:j, j])) for j = m:n] |> _integrate
     # Integrate the duplicated box
     int_box = _integrate((@view z[m:n, 1:m]))
-    return 2*(int_upper + int_lower - int_box)
+    return 2 * (int_upper + int_lower - int_box)
 end

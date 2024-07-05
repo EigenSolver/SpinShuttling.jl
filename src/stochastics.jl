@@ -44,8 +44,8 @@ struct RandomFunction
     Σ::Symmetric{<:Real} # covariance matrices
     C::Cholesky # decomposition
     function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField)
-        μ=process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
-        Σ=covariancematrix(P, process)
+        μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
+        Σ = covariancematrix(P, process)
         return new(μ, P, Σ, cholesky(Σ))
     end
 
@@ -66,12 +66,12 @@ Divide the covariance matrix of a direct summed random function into partitions.
 - `Matrix{Matrix{<:Real}}`: a matrix of covariance matrices
 """
 function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
-    Λ=Matrix{Matrix{<:Real}}(undef, n, n)
-    N=length(R.P)÷n
-    Σ(i::Int,j::Int) = R.Σ[(i-1)*N+1: i*N , (j-1)*N+1: j*N]
+    Λ = Matrix{Matrix{<:Real}}(undef, n, n)
+    N = length(R.P) ÷ n
+    Σ(i::Int, j::Int) = R.Σ[(i-1)*N+1:i*N, (j-1)*N+1:j*N]
     for i in 1:n
         for j in 1:n
-            Λ[i,j]=Σ(i,j)
+            Λ[i, j] = Σ(i, j)
         end
     end
     return Λ
@@ -87,8 +87,8 @@ end
 - `Vector{Vector{<:Real}}`: a vector of mean vectors
 """
 function meanpartition(R::RandomFunction, n::Int)::Vector{Vector{<:Real}}
-    N=length(R.P)÷n
-    return [R.μ[(i-1)*N+1: i*N] for i in 1:n]
+    N = length(R.P) ÷ n
+    return [R.μ[(i-1)*N+1:i*N] for i in 1:n]
 end
 
 """
@@ -104,11 +104,11 @@ The output random function is a tensor contraction from the input.
 - `RandomFunction`: a new random function composed by a linear combination of random processes
 """
 function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunction
-    n=length(c)
-    N=size(R.Σ,1)
-    μ = sum(c .*meanpartition(R, n))
-    Σ = Symmetric(sum((c*c') .* covariancepartition(R, n)))
-    t=[(p[1],) for p in R.P[1:(N÷n)]]
+    n = length(c)
+    N = size(R.Σ, 1)
+    μ = sum(c .* meanpartition(R, n))
+    Σ = Symmetric(sum((c * c') .* covariancepartition(R, n)))
+    t = [(p[1],) for p in R.P[1:(N÷n)]]
     return RandomFunction(μ, t, Σ, cholesky(Σ))
 end
 
@@ -124,11 +124,11 @@ Generate a random time series from a Gaussian random field.
 `R(randseq)` generates a random time series from a Gaussian random field `R` with a given random sequence `randseq`.
 """
 function (R::RandomFunction)(randseq::Vector{<:Real})
-    return R.μ .+ R.C.L*randseq
+    return R.μ .+ R.C.L * randseq
 end
 
-(R::RandomFunction)()=R(randn(size(R.Σ, 1)))
- 
+(R::RandomFunction)() = R(randn(size(R.Σ, 1)))
+
 
 """
 Covariance function of Gaussian random field.
@@ -139,7 +139,7 @@ Covariance function of Gaussian random field.
 - `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkBrownianField`
 """
 function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::Real
-    process.σ^2 / prod(2* process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
+    process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
 end
 
 function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
@@ -148,7 +148,7 @@ function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
     x₁ = p₁[2:end]
     x₂ = p₂[2:end]
     γ = process.γ
-    cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) : 1
+    cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
     cov_brown = exp(-dot(process.θ, abs.(x₁ .- x₂)))
     return process.σ^2 * cov_pink * cov_brown
 end
@@ -202,13 +202,13 @@ Using Simpson's rule by default.
 """
 function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Number}}
     # need further optimization
-    dt=R.P[2][1]-R.P[1][1]
-    N=size(R.Σ,1)
-    @assert N%2==1
-    χ(j::Int)=exp.(1im*integrate(view(R.μ, 1:j), dt))*exp.(-integrate(view(R.Σ, 1:j,1:j), dt, dt)/2)
-    t=[p[1] for p in R.P[2:2:N-1]]
-    f=[χ(j) for j in 3:2:N] # only for simpson's rule
-    return (t,f)
+    dt = R.P[2][1] - R.P[1][1]
+    N = size(R.Σ, 1)
+    @assert N % 2 == 1
+    χ(j::Int) = exp.(1im * integrate(view(R.μ, 1:j), dt)) * exp.(-integrate(view(R.Σ, 1:j, 1:j), dt, dt) / 2)
+    t = [p[1] for p in R.P[2:2:N-1]]
+    f = [χ(j) for j in 3:2:N] # only for simpson's rule
+    return (t, f)
 end
 
 """
@@ -217,6 +217,6 @@ numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
 function characteristicvalue(R::RandomFunction)::Number
-    dt=R.P[2][1]-R.P[1][1]
-    return exp.(1im*integrate(R.μ, dt))*exp.(-integrate((@view R.Σ[:,:]), dt, dt)/2)
+    dt = R.P[2][1] - R.P[1][1]
+    return exp.(1im * integrate(R.μ, dt)) * exp.(-integrate((@view R.Σ[:, :]), dt, dt) / 2)
 end

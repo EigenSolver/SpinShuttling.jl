@@ -81,13 +81,16 @@ N=301; # discretization size
 model=OneSpinModel(T,L,N,B)
 println(model)
 ```
+This provides us an overview of the model. It's a single spin shuttling problem with initial state `Ψ₀` and an Ornstein-Uhlenbeck noise. The total time of simulation is `T`, which is discretized into `N` steps.
 
-
-The fidelity of the spin state after shuttling can be calculated using numerical integration of the covariance matrix.  
-
-This provides us an overview of the model. It's a single spin shuttling problem with initial state `Ψ₀` and an Ornstein-Uhlenbeck noise. The total time of simulation is `T`, which is discretized into `N` steps.  
-
-The state fidelity after such a quantum process can be obtained by different numerical methods. 
+The effective noise of this spin qubit is completely characterized by its covariance matrix.  
+```@example quickstart
+heatmap(collect(sqrt.(model.R.Σ)), title="sqrt cov, 1-spin one-way shuttling", 
+size=(400,300), 
+xlabel="t1", ylabel="t2", dpi=300,
+right_margin=5Plots.mm)
+```
+The state fidelity after such a quantum process can be obtained using numerical integration of the covariance matrix.  
 ```@example quickstart
 f1=averagefidelity(model); # direct integration
 
@@ -119,7 +122,6 @@ We can check that the fidelity between the initial and final state is consistent
 f=(Ψ'*ρt*Ψ)
 ```
 
-
 ## Dephasing of entangled spin pairs during shuttling. 
 Following the approach above, we can further explore the multi-spin system. 
 The general abstraction on such a problem is given by the data type `ShuttlingModel`.  
@@ -148,7 +150,7 @@ plot!(model.R.P[N+1:2N,1], label="x2(t)")
 
 
 ```@example quickstart
-heatmap(collect(model.R.Σ)*1e3, title="covariance matrix, two spin EPR", 
+heatmap(collect(model.R.Σ)*1e3, title="covariance, 2-spin sequential shuttling", 
 size=(400,300), 
 xlabel="t1", ylabel="t2", dpi=300,
 right_margin=5Plots.mm)

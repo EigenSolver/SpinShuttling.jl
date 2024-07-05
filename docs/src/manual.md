@@ -31,7 +31,6 @@ TwoSpinParallelModel
 dephasingmatrix
 ```
 
-
 ```@docs
 fidelity
 ```
