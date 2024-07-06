@@ -10,11 +10,12 @@ using Base.Threads
 include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
+include("sampling.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction,
     OrnsteinUhlenbeckField, PinkBrownianField
-export averagefidelity, fidelity, sampling, characteristicfunction, characteristicvalue
+export statefidelity, sampling, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
 export W
 
@@ -181,106 +182,6 @@ function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
     return TwoSpinModel(Ψ, T, N, B, x₁, x₂)
 end
 
-"""
-Calculate the average fidelity of a spin shuttling model using numerical integration 
-of the covariance matrix.
-
-# Arguments
-- `model::ShuttlingModel`: The spin shuttling model
-
-"""
-function averagefidelity(model::ShuttlingModel)::Real
-    # model.R is immutable
-    if model.n == 1
-        R = model.R
-    elseif model.n == 2
-        R = CompositeRandomFunction(model.R, [1, -1])
-    elseif model.n > 2
-        error("The number of spins is not supported")
-    end
-    W = real(characteristicvalue(R))
-    F = @. 1 / 2 * (1 + W)
-    return F
-end
-
-function statefidelity(model::ShuttlingModel)::Real
-    Ψ= model.Ψ
-    w=dephasingmatrix(model)
-    ρt=w.*(Ψ*Ψ')
-    return Ψ'*ρt*Ψ
-end
-
-
-"""
-Monte-Carlo sampling of any objective function. 
-The function must return Tuple{Real,Real} or Tuple{Vector{<:Real},Vector{<:Real}}
-
-# Arguments
-- `samplingfunction::Function`: The function to be sampled
-- `M::Int`: Monte-Carlo sampling size
-# Returns
-- `Tuple{Real,Real}`: The mean and variance of the sampled function
-- `Tuple{Vector{<:Real},Vector{<:Real}}`: The mean and variance of the sampled function
-# Example
-```julia
-f(x) = x^2
-sampling(f, 1000)
-```
-
-# Reference
-https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
-
-"""
-function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tuple{Vector{<:Real},Vector{<:Real}}}
-    if nthreads() > 1
-        return parallelsampling(samplingfunction, M)
-    end
-    N = length(samplingfunction(1))
-    A = N > 1 ? zeros(N) : 0
-    Q = copy(A)
-    for k in 1:M
-        x = samplingfunction(k)::Union{Real,Vector{<:Real}}
-        Q = Q + (k - 1) / k * (x - A) .^ 2
-        A = A + (x - A) / k
-    end
-    return A, Q / (M - 1)
-end
-
-function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Real,Real},Tuple{Vector{<:Real},Vector{<:Real}}}
-    N = length(samplingfunction(1))
-    if N > 1
-        cache = zeros(N, M)
-        @threads for i in 1:M
-            cache[:, i] .= samplingfunction(i)
-        end
-        A = mean(cache, dims=2)
-        Q = var(cache, dims=2)
-        return A, Q
-    else
-        cache = zeros(M)
-        @threads for i in 1:M
-            cache[i] = samplingfunction(i)
-        end
-        A = mean(cache)
-        Q = var(cache)
-        return A, Q
-    end
-end
-
-
-"""
-Sampling an observable that defines on a specific spin shuttling model 
-
-# Arguments
-- `model::ShuttlingModel`: The spin shuttling model
-- `objective::Function`: The objective function `objective(mode::ShuttlingModel; randseq)``
-- `M::Int`: Monte-Carlo sampling size
-"""
-function sampling(model::ShuttlingModel, objective::Function, M::Int; vector::Bool=false)
-    randpool = randn(model.n * model.N, M)
-    samplingfunction = i::Int -> objective(model, randpool[:, i]; vector=vector)::Union{Real,Vector{<:Real}}
-    return sampling(samplingfunction, M)
-end
 
 """
 
@@ -303,12 +204,25 @@ function dephasingmatrix(model::ShuttlingModel)::Symmetric{<:Real}
         W[j, j] = 1
         for k in 1:j-1
             c = [trunc(Int, m(i, j - 1, n) - m(i, k - 1, n)) for i in 1:n]
-            R = CompositeRandomFunction(model.R, c)
-            W[j, k] = characteristicvalue(R)
+            W[j, k] = dephasingfactor(model, c)
             W[k, j] = W[j, k]
         end
     end
     return Symmetric(W)
+end
+
+"""
+Calculate the dephasingfactor according to a special combinator of the noise sequence.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
+
+"""
+function dephasingfactor(model::ShuttlingModel, c::Vector{Int})::Real
+    # @assert length(c) == model.n
+    R = CompositeRandomFunction(model.R, c)
+    return characteristicvalue(R)
 end
 
 function dephasingcoeffs(n::Int)::Array{Real,3}
@@ -322,29 +236,113 @@ function dephasingcoeffs(n::Int)::Array{Real,3}
     return M
 end
 
+
 """
-Sample a phase integral of the process. 
-The integrate of a random function should be obtained 
-from directly summation without using high-order interpolation 
-(Simpson or trapezoid). 
+Calculate the average fidelity of a spin shuttling model using numerical integration 
+of the covariance matrix.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+
 """
-function fidelity(model::ShuttlingModel, randseq::Vector{<:Real}; vector::Bool=false)::Union{Real,Vector{<:Real}}
-    # model.R || error("covariance matrix is not initialized")
-    N = model.N
-    dt = model.T / N
-    A = model.R(randseq)
-    if model.n == 1
-        Z = A
-    elseif model.n == 2
-        # only valid for two-spin EPR pair, ψ=1/√2(|↑↓⟩-|↓↑⟩)
-        Z = A[1:N] - A[N+1:end]
-    else
-        Z = missing
-    end
-    ϕ = vector ? cumsum(Z) * dt : sum(Z) * dt
-    return (1 .+ cos.(ϕ)) / 2
+# function statefidelity(model::ShuttlingModel)::Real
+#     # model.R is immutable
+#     if model.n == 1
+#         R = model.R
+#     elseif model.n == 2
+#         R = CompositeRandomFunction(model.R, [1, -1])
+#     elseif model.n > 2
+#         error("The number of spins is not supported")
+#     end
+#     W = real(characteristicvalue(R))
+#     F = @. 1 / 2 * (1 + W)
+#     return F
+# end
+
+
+"""
+Calculate the state fidelity of a spin shuttling model using numerical integration
+of the covariance matrix.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+"""
+function statefidelity(model::ShuttlingModel)::Real
+    Ψ= model.Ψ
+    w=dephasingmatrix(model)
+    ρt=w.*(Ψ*Ψ')
+    return Ψ'*ρt*Ψ
 end
 
+
+"""
+Sampling an observable that defines on a specific spin shuttling model 
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `objective::Function`: The objective function `objective(mode::ShuttlingModel; randseq)``
+- `M::Int`: Monte-Carlo sampling size
+"""
+function sampling(model::ShuttlingModel, objective::Function, M::Int; vector::Bool=false)
+    randpool = randn(model.n * model.N, M)
+    samplingfunction = i::Int -> objective(model, randpool[:, i]; tspan=vector)::Union{Real,Vector{<:Real}}
+    return sampling(samplingfunction, M)
+end
+
+
+"""
+Sample the state fidelity of a spin shuttling model using Monte-Carlo sampling.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `randseq::Vector{<:Real}`: The random sequence
+- `tspan::Bool`: Return the dephasing matrix array for each time step
+"""
+function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; tspan=false)::Union{Real,Vector{<:Real}}
+    w=dephasingmatrix(model, randseq; tspan=tspan)
+    ψ = model.Ψ
+    f= w->real(ψ'*(w.*(ψ*ψ'))*ψ)
+    return tspan ? vec(mapslices(f, w, dims=[1,2])) : f(w)
+end
+
+
+"""
+Sample the dephasing matrix array for a given normal random vector.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `randseq::Vector{<:Real}`: The random sequence
+- `tspan::Bool`: Return the dephasing matrix array for each time step
+"""
+function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; tspan=false)::Array{<:Complex}
+    # model.R || error("covariance matrix is not initialized")
+    N = model.N
+    n=model.n
+    dt = model.T / N
+    noises = model.R(randseq)
+    B=[noises[(i-1)*N+1:i*N] for i in 1:n]
+    c=dephasingcoeffs(n)
+    if tspan
+        W=ones(Complex, 2^n,2^n, N)
+        for j in 1:2^n
+            for k in 1:j-1
+                B_eff=sum(c[j,k,:].*B) 
+                W[j, k, :] = exp.(im*cumsum(B_eff)*dt)
+                W[k, j, :] = W[j, k, :]'
+            end
+        end
+    else
+        W=ones(Complex, 2^n,2^n)
+        for j in 1:2^n
+            for k in 1:j-1
+                B_eff=sum(c[j,k,:].*B) 
+                W[j, k] = exp(im*sum(B_eff)*dt)
+                W[k, j] = W[j, k]'
+            end
+        end
+    end
+    return W
+end
 
 
 """

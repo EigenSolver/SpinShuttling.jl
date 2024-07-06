@@ -10,8 +10,8 @@ visualize=true
     # test customize println
     println(model)
     
-    f1=averagefidelity(model)
-    f2, f2_err=sampling(model, fidelity, M)
+    f1=statefidelity(model)
+    f2, f2_err=sampling(model, statefidelity, M)
     f3=1/2*(1+W(T,L,B))
     @test isapprox(f1, f3,rtol=3e-2)
     @test isapprox(f2, f3, rtol=3e-2) 
@@ -28,8 +28,8 @@ end
 
     if visualize
         t=range(1e-2*T,T, 10)
-        f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), fidelity, M)[1] for T in t]
-        f_ni=[averagefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
+        f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), statefidelity, M)[1] for T in t]
+        f_ni=[statefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
         f_th=[(1+W(T,L,B,path=:forthback))/2 for T in t]
         fig=lineplot(t, f_mc,
             xlabel="t", ylabel="F", name="monte-carlo sampling",
@@ -44,8 +44,8 @@ end
     # test customize println
     println(model)
 
-    f1=averagefidelity(model)
-    f2, f2_err=sampling(model, fidelity, M)
+    f1=statefidelity(model)
+    f2, f2_err=sampling(model, statefidelity, M)
     f3=1/2*(1+W(T, L, B, path=:forthback))
     @test isapprox(f1, f3,rtol=3e-2)
     @test isapprox(f2, f3, rtol=3e-2) 
@@ -62,8 +62,8 @@ end
     if visualize
         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
     end
-    f1=averagefidelity(model)
-    f2, f2_err=sampling(model, fidelity, M)
+    f1=statefidelity(model)
+    f2, f2_err=sampling(model, statefidelity, M)
     f3=1/2*(1+W(T0, T1, L,B))
     @test isapprox(f1, f3,rtol=3e-2)
     @test isapprox(f2, f3, rtol=3e-2) 
@@ -83,8 +83,8 @@ end
     B=PinkBrownianField(0,[κₓ],σ, γ)
     model=OneSpinModel(T,L,N,B)
 
-    f1=averagefidelity(model)
-    f2, f2_err=sampling(model, fidelity, M)
+    f1=statefidelity(model)
+    f2, f2_err=sampling(model, statefidelity, M)
     f3=1/2*(1+W(T,L,B))
     @test isapprox(f1, f3,rtol=3e-2)
     @test isapprox(f2, f3, rtol=3e-2)
@@ -93,12 +93,12 @@ end
     println("TH:", f3)
 
     k=10
-    t=range(0,T,k)
+    t=range(0.1,T,k)
     f_mc=zeros(k);  f_mc_err=zeros(k); f_ni=zeros(k);
     @showprogress for i in eachindex(t)
         model=OneSpinModel(t[i],L,N,B)
-        f_mc[i], f_mc_err[i]=sampling(model, fidelity, M)
-        f_ni[i]=averagefidelity(model)
+        f_mc[i], f_mc_err[i]=sampling(model, statefidelity, M)
+        f_ni[i]=statefidelity(model)
     end
     f_th=map(T->(1+W(T,L,B))/2, t)|>collect
     if visualize

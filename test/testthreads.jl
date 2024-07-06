@@ -23,6 +23,6 @@ using DelimitedFiles
     end
 
     M = 100000; 
-    F=sampling(model, fidelity, M)
+    F=sampling(model, statefidelity, M)
     println(F)
 end

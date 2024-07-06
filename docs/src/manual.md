@@ -32,15 +32,11 @@ dephasingmatrix
 ```
 
 ```@docs
-fidelity
-```
-
-```@docs
 sampling
 ```
 
 ```@docs
-averagefidelity
+statefidelity
 ```
 
 ```@docs
