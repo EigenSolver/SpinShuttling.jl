@@ -203,6 +203,13 @@ function averagefidelity(model::ShuttlingModel)::Real
     return F
 end
 
+function statefidelity(model::ShuttlingModel)::Real
+    Ψ= model.Ψ
+    w=dephasingmatrix(model)
+    ρt=w.*(Ψ*Ψ')
+    return Ψ'*ρt*Ψ
+end
+
 
 """
 Monte-Carlo sampling of any objective function. 
