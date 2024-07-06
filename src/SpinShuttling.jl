@@ -262,7 +262,7 @@ Sampling an observable that defines on a specific spin shuttling model
 """
 function sampling(model::ShuttlingModel, objective::Function, M::Int; isarray::Bool=false)
     randpool = randn(model.n * model.N, M)
-    samplingfunction = i::Int -> objective(model, randpool[:, i]; isarray=isarray)::Union{Real,Vector{<:Real}}
+    samplingfunction = i::Int -> objective(model, randpool[:, i]; isarray=isarray)::Union{Number,VecOrMat{<:Number}}
     return sampling(samplingfunction, M)
 end
 

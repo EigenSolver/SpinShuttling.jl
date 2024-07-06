@@ -4,9 +4,9 @@ using SpinShuttling
 using UnicodePlots
 using ProgressMeter
 
-# include("testintegration.jl")
+include("testintegration.jl")
 include("testfidelity.jl")
-# include("teststochastics.jl")
-# include("testspectrum.jl")
-# include("testthreads.jl")
-# include("testdephasingfactor.jl")
+include("teststochastics.jl")
+include("testspectrum.jl")
+include("testthreads.jl")
+include("testdephasingfactor.jl")

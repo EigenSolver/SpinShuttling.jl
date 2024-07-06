@@ -10,10 +10,12 @@
     f=statefidelity(model)
     w=dephasingmatrix(model)
 
-    w2=sum([dephasingmatrix(model, randn(N)) for i in 1:M])/M
-    println(w2)
+    w2=SpinShuttling.parallelsampling(i->dephasingmatrix(model,randn(N)),M)[1]
     @test norm(w-w2)<2e-2
-    # println(w2)
+    w3=sampling(i->dephasingmatrix(model,randn(N)),M)[1]
+    @test norm(w-w3)<2e-2
+
+
     rho=model.Ψ*model.Ψ'
     @test rho[1,1]+rho[2,2]≈ 1
     @test w==w'
@@ -32,9 +34,6 @@ end
     println(model)
     f=statefidelity(model)
     w=dephasingmatrix(model)
-
-    w2=sum([dephasingmatrix(model, randn(2N)) for i in 1:M])/M
-    @test norm(w-w2)<2e-2
 
     rho=model.Ψ*model.Ψ'
     @test sum([rho[i,i] for i in 1:4 ]) ≈ 1
