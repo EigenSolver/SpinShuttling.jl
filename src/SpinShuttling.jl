@@ -238,29 +238,6 @@ end
 
 
 """
-Calculate the average fidelity of a spin shuttling model using numerical integration 
-of the covariance matrix.
-
-# Arguments
-- `model::ShuttlingModel`: The spin shuttling model
-
-"""
-# function statefidelity(model::ShuttlingModel)::Real
-#     # model.R is immutable
-#     if model.n == 1
-#         R = model.R
-#     elseif model.n == 2
-#         R = CompositeRandomFunction(model.R, [1, -1])
-#     elseif model.n > 2
-#         error("The number of spins is not supported")
-#     end
-#     W = real(characteristicvalue(R))
-#     F = @. 1 / 2 * (1 + W)
-#     return F
-# end
-
-
-"""
 Calculate the state fidelity of a spin shuttling model using numerical integration
 of the covariance matrix.
 
@@ -283,9 +260,9 @@ Sampling an observable that defines on a specific spin shuttling model
 - `objective::Function`: The objective function `objective(mode::ShuttlingModel; randseq)``
 - `M::Int`: Monte-Carlo sampling size
 """
-function sampling(model::ShuttlingModel, objective::Function, M::Int; vector::Bool=false)
+function sampling(model::ShuttlingModel, objective::Function, M::Int; isarray::Bool=false)
     randpool = randn(model.n * model.N, M)
-    samplingfunction = i::Int -> objective(model, randpool[:, i]; tspan=vector)::Union{Real,Vector{<:Real}}
+    samplingfunction = i::Int -> objective(model, randpool[:, i]; isarray=isarray)::Union{Real,Vector{<:Real}}
     return sampling(samplingfunction, M)
 end
 
@@ -296,13 +273,13 @@ Sample the state fidelity of a spin shuttling model using Monte-Carlo sampling.
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
 - `randseq::Vector{<:Real}`: The random sequence
-- `tspan::Bool`: Return the dephasing matrix array for each time step
+- `isarray::Bool`: Return the dephasing matrix array for each time step
 """
-function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; tspan=false)::Union{Real,Vector{<:Real}}
-    w=dephasingmatrix(model, randseq; tspan=tspan)
+function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Union{Real,Vector{<:Real}}
+    w=dephasingmatrix(model, randseq; isarray=isarray)
     ψ = model.Ψ
     f= w->real(ψ'*(w.*(ψ*ψ'))*ψ)
-    return tspan ? vec(mapslices(f, w, dims=[1,2])) : f(w)
+    return isarray ? vec(mapslices(f, w, dims=[1,2])) : f(w)
 end
 
 
@@ -312,9 +289,9 @@ Sample the dephasing matrix array for a given normal random vector.
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
 - `randseq::Vector{<:Real}`: The random sequence
-- `tspan::Bool`: Return the dephasing matrix array for each time step
+- `isarray::Bool`: Return the dephasing matrix array for each time step
 """
-function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; tspan=false)::Array{<:Complex}
+function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Array{<:Complex}
     # model.R || error("covariance matrix is not initialized")
     N = model.N
     n=model.n
@@ -322,7 +299,7 @@ function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; tspan=f
     noises = model.R(randseq)
     B=[noises[(i-1)*N+1:i*N] for i in 1:n]
     c=dephasingcoeffs(n)
-    if tspan
+    if isarray
         W=ones(Complex, 2^n,2^n, N)
         for j in 1:2^n
             for k in 1:j-1
