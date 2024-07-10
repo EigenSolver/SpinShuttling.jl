@@ -36,20 +36,21 @@ a Gaussian random process traced from a Gaussian random field.
 - `μ::Vector{<:Real}`: mean of the process
 - `P::Vector{<:Point}`: time-position array
 - `Σ::Symmetric{<:Real}`: covariance matrices
-- `C::Cholesky`: Cholesky decomposition of the covariance matrices
+- `L::Matrix{<:Real}`: lower triangle matrix of Cholesky decomposition
 """
 struct RandomFunction
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
-    C::Cholesky # decomposition
+    L::Matrix{<:Real} # Lower triangle matrix of Cholesky decomposition
     function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField)
         μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ = covariancematrix(P, process)
-        return new(μ, P, Σ, cholesky(Σ))
+        L = collect(cholesky(Σ).L)
+        return new(μ, P, Σ, L)
     end
 
-    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, C::Cholesky)
+    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Matrix{<:Real})
         new(μ, P, Σ, C)
     end
 end
@@ -109,7 +110,8 @@ function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunct
     μ = sum(c .* meanpartition(R, n))
     Σ = Symmetric(sum((c * c') .* covariancepartition(R, n)))
     t = [(p[1],) for p in R.P[1:(N÷n)]]
-    return RandomFunction(μ, t, Σ, cholesky(Σ))
+    L = collect(cholesky(Σ).L)
+    return RandomFunction(μ, t, Σ, L)
 end
 
 
@@ -124,7 +126,7 @@ Generate a random time series from a Gaussian random field.
 `R(randseq)` generates a random time series from a Gaussian random field `R` with a given random sequence `randseq`.
 """
 function (R::RandomFunction)(randseq::Vector{<:Real})
-    return R.μ .+ R.C.L * randseq
+    return R.μ .+ R.L * randseq
 end
 
 (R::RandomFunction)() = R(randn(size(R.Σ, 1)))

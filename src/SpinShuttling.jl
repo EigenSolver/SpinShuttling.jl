@@ -260,10 +260,14 @@ Sampling an observable that defines on a specific spin shuttling model
 - `objective::Function`: The objective function `objective(mode::ShuttlingModel; randseq)``
 - `M::Int`: Monte-Carlo sampling size
 """
-function sampling(model::ShuttlingModel, objective::Function, M::Int; isarray::Bool=false)
-    randpool = randn(model.n * model.N, M)
-    samplingfunction = i::Int -> objective(model, randpool[:, i]; isarray=isarray)::Union{Number,VecOrMat{<:Number}}
-    return sampling(samplingfunction, M)
+function sampling(model::ShuttlingModel, objective::Function, M::Int; isarray::Bool=false, isparallel::Bool=true)
+    N=model.n * model.N
+    samplingfunction()::Union{Number,VecOrMat{<:Number}} = objective(model, randn(N); isarray=isarray)
+    if isparallel
+        return parallelsampling(samplingfunction, M)
+    else
+        return serialsampling(samplingfunction, M)
+    end
 end
 
 

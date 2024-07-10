@@ -1,5 +1,5 @@
 """
-Monte-Carlo sampling of any objective function. 
+Monte-Carlo sampling of any objective function without storage in memory. 
 The function must return Tuple{Number,Number} or Tuple{VecOrMat{<:Number},VecOrMat{<:Number}}
 
 # Arguments
@@ -17,15 +17,12 @@ sampling(f, 1000)
 # Reference
 https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
 """
-function sampling(samplingfunction::Function, M::Int)::Union{Tuple{Number,Number},Tuple{VecOrMat{<:Number},VecOrMat{<:Number}}}
-    if nthreads() > 1
-        return parallelsampling(samplingfunction, M)
-    end
-    A = samplingfunction(1)
+function serialsampling(samplingfunction::Function, M::Int)::Union{Tuple{Number,Number},Tuple{VecOrMat{<:Number},VecOrMat{<:Number}}}
+    A = samplingfunction()
     A isa Array ? A .= 0 : A = 0
     Q = copy(A)
     for k in 1:M
-        x = samplingfunction(k)::Union{Number,VecOrMat{<:Number}}
+        x = samplingfunction()::Union{Number,VecOrMat{<:Number}}
         Q = Q + (k - 1) / k * abs.(x - A) .^ 2
         A = A + (x - A) / k
     end
@@ -37,11 +34,11 @@ Multi-threaded Monte-Carlo sampling of any objective function.
 The function must return Tuple{Number,Number} or Tuple{VecOrMat{<:Number},VecOrMat{<:Number}}
 """
 function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Number,Number},Tuple{VecOrMat{<:Number},VecOrMat{<:Number}}}
-    obj = samplingfunction(1)
+    obj = samplingfunction()
     if obj isa Number
         cache = zeros(typeof(obj), M)
         @threads for i in 1:M
-            cache[i] = samplingfunction(i)
+            cache[i] = samplingfunction()
         end
         A = mean(cache)
         Q = var(cache)
@@ -49,7 +46,7 @@ function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Numbe
     elseif obj isa Vector
         cache = zeros(typeof(obj).parameters[1], length(obj), M)
         @threads for i in 1:M
-            cache[:, i] .= samplingfunction(i)
+            cache[:, i] .= samplingfunction()
         end
         A = dropdims(mean(cache, dims=2),dims=2)
         Q = dropdims(var(cache, dims=2),dims=2)
@@ -57,7 +54,7 @@ function parallelsampling(samplingfunction::Function, M::Int)::Union{Tuple{Numbe
     elseif obj isa Matrix
         cache = zeros(typeof(obj).parameters[1], size(obj)..., M)
         @threads for i in 1:M
-            cache[:, :, i] .= samplingfunction(i)
+            cache[:, :, i] .= samplingfunction()
         end
         A = dropdims(mean(cache, dims=3),dims=3)
         Q = dropdims(var(cache, dims=3),dims=3)
