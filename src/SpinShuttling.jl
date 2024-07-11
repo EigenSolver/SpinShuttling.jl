@@ -197,7 +197,7 @@ end
 """
 Calculate the dephasing matrix of a given spin shuttling model.
 """
-function dephasingmatrix(model::ShuttlingModel)::Symmetric{<:Real}
+function dephasingmatrix(model::ShuttlingModel)::Matrix{<:Real}
     n = model.n
     W = zeros(2^n, 2^n)
     for j in 1:2^n
@@ -208,7 +208,7 @@ function dephasingmatrix(model::ShuttlingModel)::Symmetric{<:Real}
             W[k, j] = W[j, k]
         end
     end
-    return Symmetric(W)
+    return W
 end
 
 """
