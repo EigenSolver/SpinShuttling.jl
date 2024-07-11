@@ -25,7 +25,7 @@ specified by the paths of the shuttled spins.
 
 # Arguments
 - `n::Int`: Number of spins
-- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time 
 - `N::Int`: Time discretization 
 - `B::GaussianRandomField`: Noise field
@@ -34,7 +34,7 @@ specified by the paths of the shuttled spins.
 """
 struct ShuttlingModel
     n::Int # number of spins
-    Ψ::Vector{<:Number}
+    Ψ::Vector{<:Complex}
     T::Real # time 
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
@@ -64,13 +64,13 @@ General one spin shuttling model initialized at initial state |Ψ₀⟩,
 with arbitrary shuttling path x(t). 
 
 # Arguments
-- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
 - `x::Function`: Shuttling path
 """
-function OneSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
+function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function)
 
     t = range(0, T, N)
@@ -117,14 +117,14 @@ General two spin shuttling model initialized at initial state |Ψ₀⟩,
 with arbitrary shuttling paths x₁(t), x₂(t).
 
 # Arguments
-- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
 - `x₁::Function`: Shuttling path for the first spin
 - `x₂::Function`: Shuttling path for the second spin
 """
-function TwoSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
+function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function)
 
     X = [x₁, x₂]
