@@ -162,7 +162,7 @@ function TwoSpinModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandom
             return L + δ
         end
     end
-    Ψ = 1 / √2 .* [0, 1, -1, 0]
+    Ψ = 1 / √2 .* [0, 1+0im, -1+0im, 0]
     T = T₀ + T₁
     return TwoSpinModel(Ψ, T, N, B, x₁, x₂)
 end
@@ -178,7 +178,7 @@ function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
     @assert length(B.θ) >= 3
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
-    Ψ = 1 / √2 .* [0, 1, -1, 0]
+    Ψ = 1 / √2 .* [0.0, 1+0im, -1+0im, 0.0]
     return TwoSpinModel(Ψ, T, N, B, x₁, x₂)
 end
 
