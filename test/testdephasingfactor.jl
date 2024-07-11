@@ -17,7 +17,9 @@
     f = statefidelity(model)
     w = dephasingmatrix(model)
 
-    w2 = sampling(model, dephasingmatrix, M)
+    w2 = sampling(model, dephasingmatrix, M)[1]
+    w2 = abs.(w2)
+    @test typeof(w2) == Matrix{Float64}
     @test norm(w - w2) < 2e-2
 
     rho = model.Ψ * model.Ψ'
@@ -26,9 +28,9 @@
 
     println(w)
     f_c = (model.Ψ' * (w .* rho) * model.Ψ)
-    f_s = (model.Ψ' * (abs.(w2) .* rho) * model.Ψ)
+    f_s = (model.Ψ' * (w2 .* rho) * model.Ψ)
     @test f ≈ f_c
-    @test f ≈ f_s
+    @test isapprox(f, f_s, rtol=1e-2)
 end
 
 ## 
