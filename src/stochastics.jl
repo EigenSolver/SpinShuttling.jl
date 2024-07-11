@@ -51,7 +51,7 @@ struct RandomFunction
     end
 
     function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Matrix{<:Real})
-        new(μ, P, Σ, C)
+        new(μ, P, Σ, L)
     end
 end
 

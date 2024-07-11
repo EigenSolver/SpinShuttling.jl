@@ -87,7 +87,7 @@ The qubit is shuttled at constant velocity along the path `x(t)=L/T*t`,
 with total time `T` in `μs` and length `L` in `μm`.
 """
 OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField) =
-    OneSpinModel(1 / √2 * [1, 1], T, N, B, t::Real -> L / T * t)
+    OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, t::Real -> L / T * t)
 
 """
 One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
