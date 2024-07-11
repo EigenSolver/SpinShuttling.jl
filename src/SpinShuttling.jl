@@ -104,7 +104,7 @@ with total time `T` in `μs` and length `L` in `μm`.
 """
 function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField)
     x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
-    return OneSpinModel(1 / √2 * [1, 1], t, N, B, τ -> x(τ, 2L / T, L))
+    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ -> x(τ, 2L / T, L))
 end
 
 function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
