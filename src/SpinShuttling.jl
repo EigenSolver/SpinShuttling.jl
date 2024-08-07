@@ -131,7 +131,8 @@ function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
 
     X = [x₁, x₂]
     t = range(0, T, N)
-    P = vcat(collect(zip(t, x₁.(t))), collect(zip(t, x₂.(t))))
+    f(x::Function, t::Real) = (t, x(t)...)
+    P = vcat(f.(x₁, t), f.(x₂, t))
     R = RandomFunction(P, B)
     model = ShuttlingModel(2, Ψ, T, N, B, X, R)
     return model
@@ -177,7 +178,6 @@ The total shuttling time is `T` and the length of the path is `L` in `μm`.
 """
 function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
     B::GaussianRandomField)
-    @assert length(B.θ) >= 3
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
     Ψ = 1 / √2 .* [0.0, 1+0im, -1+0im, 0.0]
@@ -373,7 +373,7 @@ function W(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField; path=:sequenc
     if path == :sequenced
         return exp(-σ^2 / (4 * κₜ * κₓ) / κₜ^2 * (F1(β, γ, τ) - F2(β, γ, τ)))
     elseif path == :parallel
-        missing("Parallel path not implemented yet.")
+        return exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*T1)) * P1(κₜ*T0, κₓ*L))
     else
         error("Path not recognized. Use :sequenced or :parallel for two-spin EPR pair shuttling model.")
     end
