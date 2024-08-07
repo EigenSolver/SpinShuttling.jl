@@ -24,6 +24,10 @@ TwoSpinModel
 ```
 
 ```@docs
+TwoSpinSequentialModel
+```
+
+```@docs
 TwoSpinParallelModel
 ```
 

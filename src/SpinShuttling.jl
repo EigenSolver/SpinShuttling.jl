@@ -13,7 +13,9 @@ include("stochastics.jl")
 include("sampling.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
-    OneSpinForthBackModel, TwoSpinParallelModel, RandomFunction, CompositeRandomFunction,
+    OneSpinForthBackModel, 
+    TwoSpinSequentialModel, TwoSpinParallelModel, 
+    RandomFunction, CompositeRandomFunction,
     OrnsteinUhlenbeckField, PinkBrownianField
 export statefidelity, sampling, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
@@ -141,7 +143,7 @@ The qubits are shuttled at constant velocity along the path `x₁(t)=L/T₁*t` a
 The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`.
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
 """
-function TwoSpinModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField)
+function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField)
     function x₁(t::Real)::Real
         if t < 0
             return 0

@@ -58,7 +58,7 @@ end
 @testset begin "test two spin sequenced shuttling fidelity"
     L=10; σ =sqrt(2)/20; M=5000; N=501; T1=200; T0=25*0.05; κₜ=1/20; κₓ=1/0.1;
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-    model=TwoSpinModel(T0, T1, L, N, B)
+    model=TwoSpinSequentialModel(T0, T1, L, N, B)
     if visualize
         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
     end

@@ -26,7 +26,6 @@
     @test rho[1, 1] + rho[2, 2] ≈ 1
     @test w == w'
 
-    println(w)
     f_c = (model.Ψ' * (w .* rho) * model.Ψ)
     f_s = (model.Ψ' * (w2 .* rho) * model.Ψ)
     @test f ≈ f_c
@@ -45,7 +44,7 @@ end
     κₜ = 1 / 20
     κₓ = 1 / 0.1
     B = OrnsteinUhlenbeckField(0, [κₜ, κₓ], σ)
-    model = TwoSpinModel(T0, T1, L, N, B)
+    model = TwoSpinSequentialModel(T0, T1, L, N, B)
     println(model)
     f = statefidelity(model)
     w = dephasingmatrix(model)
@@ -54,11 +53,8 @@ end
     @test sum([rho[i, i] for i in 1:4]) ≈ 1
     @test w == w'
 
-    println(w)
     f_c = (model.Ψ' * (w .* rho) * model.Ψ)
 
-    println(f)
-    println(f_c)
     @test f ≈ f_c
 end
 

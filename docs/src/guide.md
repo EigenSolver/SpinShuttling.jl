@@ -134,7 +134,7 @@ One more example is the shuttling of two spin pairs. We can define such a two-sp
 ```@example quickstart
 L=10; σ =sqrt(2)/20; M=5000; N=501; T1=100; T0=25; κₜ=1/20; κₓ=1/0.1;
 B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-model=TwoSpinModel(T0, T1, L, N, B)
+model=TwoSpinSequentialModel(T0, T1, L, N, B)
 println(model)
 ```
 
