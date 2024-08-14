@@ -83,7 +83,7 @@ end
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
     v=2;
-    B=PinkBrownianField(0,[κₓ],σ, γ)
+    B=PinkLorentzianField(0,[κₓ],σ, γ)
     # B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
 
     M=5

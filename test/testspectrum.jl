@@ -12,7 +12,7 @@ visualize=true
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
     v=1; T=L/v;
-    B=PinkBrownianField(0,[κₓ],σ, γ)
+    B=PinkLorentzianField(0,[κₓ],σ, γ)
     model=OneSpinModel(T,L,N,B)
     println(model)
 

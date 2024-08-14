@@ -20,7 +20,7 @@ Pink-Brownian Field, the correlation function of which is
 `σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-|x₁-x₂|/θ)`
 where `expinti` is the exponential integral function.
 """
-struct PinkBrownianField <: GaussianRandomField
+struct PinkLorentzianField <: GaussianRandomField
     μ::Union{<:Real,Function}  # mean
     θ::Vector{<:Real}
     σ::Real
@@ -138,13 +138,13 @@ Covariance function of Gaussian random field.
 # Arguments
 - `p₁::Point`: time-position array
 - `p₂::Point`: time-position array
-- `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkBrownianField`
+- `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkLorentzianField`
 """
 function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::Real
     process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
 end
 
-function covariance(p₁::Point, p₂::Point, process::PinkBrownianField)::Real
+function covariance(p₁::Point, p₂::Point, process::PinkLorentzianField)::Real
     t₁ = p₁[1]
     t₂ = p₂[1]
     x₁ = p₁[2:end]

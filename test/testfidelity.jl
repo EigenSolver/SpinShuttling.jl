@@ -63,7 +63,7 @@ end
     v=1; T=L/v; κₓ=10;
     # T=10 
     # 1/T=0.1 N/T=20 
-    B=PinkBrownianField(0,[κₓ],σ, γ)
+    B=PinkLorentzianField(0,[κₓ],σ, γ)
     model=OneSpinModel(T,L,N,B)
 
     f1=statefidelity(model)
@@ -141,7 +141,7 @@ end
     # T=10 
     # 1/T=0.1 N/T=20 
     D=0.3;
-    B=PinkBrownianField(0,[κₓ,κₓ],σ, γ)
+    B=PinkLorentzianField(0,[κₓ,κₓ],σ, γ)
     model=TwoSpinParallelModel(T, D, L, N, B)
 
     f1=statefidelity(model)

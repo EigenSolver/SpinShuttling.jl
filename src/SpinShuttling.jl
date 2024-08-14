@@ -16,7 +16,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
     TwoSpinSequentialModel, TwoSpinParallelModel, 
     RandomFunction, CompositeRandomFunction,
-    OrnsteinUhlenbeckField, PinkBrownianField
+    OrnsteinUhlenbeckField, PinkLorentzianField
 export statefidelity, sampling, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
 export W
@@ -353,7 +353,7 @@ function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
     end
 end
 
-function W(T::Real, L::Real, B::PinkBrownianField)::Real
+function W(T::Real, L::Real, B::PinkLorentzianField)::Real
     β = T .* B.γ
     γ = L * B.θ[1]
     return exp(-B.σ^2 * T^2 * F3(β, γ))

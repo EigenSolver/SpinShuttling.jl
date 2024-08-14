@@ -54,7 +54,7 @@ OrnsteinUhlenbeckField
 ```
 
 ```@docs
-PinkBrownianField
+PinkLorentzianField
 ```
 
 ```@docs
