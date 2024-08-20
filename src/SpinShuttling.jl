@@ -76,7 +76,8 @@ function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function)
 
     t = range(0, T, N)
-    P = collect(zip(t, x.(t)))
+    f(x::Function, t::Real) = (t, x(t)...)
+    P = f.(x, t)
     R = RandomFunction(P, B)
     model = ShuttlingModel(1, Ψ, T, N, B, [x], R)
     return model
