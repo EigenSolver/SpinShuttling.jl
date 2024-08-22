@@ -16,13 +16,13 @@ end
 
 
 """
-Pink-Brownian Field, the correlation function of which is
+Pink-Lorentzian Field, the correlation function of which is
 `σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-|x₁-x₂|/θ)`
 where `expinti` is the exponential integral function.
 """
 struct PinkLorentzianField <: GaussianRandomField
     μ::Union{<:Real,Function}  # mean
-    θ::Vector{<:Real}
+    κ::Real
     σ::Real
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
@@ -151,8 +151,8 @@ function covariance(p₁::Point, p₂::Point, process::PinkLorentzianField)::Rea
     x₂ = p₂[2:end]
     γ = process.γ
     cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
-    cov_brown = exp(-dot(process.θ, abs.(x₁ .- x₂)))
-    return process.σ^2 * cov_pink * cov_brown
+    cov_exp = exp(-process.κ*norm(x₁ .- x₂))
+    return process.σ^2 * cov_pink * cov_exp
 end
 
 """

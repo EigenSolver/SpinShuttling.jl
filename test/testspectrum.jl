@@ -6,13 +6,13 @@ visualize=true
 
 ##
 @testset "test 1/f noise" begin
-    σ = 1; M = 1000; N=1001; κₜ=1;κₓ=0;
+    σ = 1; M = 1000; N=1001;
     L=10;
     γ=(1e-5,1e3) # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
     v=1; T=L/v;
-    B=PinkLorentzianField(0,[κₓ],σ, γ)
+    B=PinkLorentzianField(0.0,0.0,σ, γ)
     model=OneSpinModel(T,L,N,B)
     println(model)
 
