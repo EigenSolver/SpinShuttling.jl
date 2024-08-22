@@ -335,7 +335,7 @@ Analytical dephasing factor of a one-spin shuttling model.
 # Arguments
 - `T::Real`: Total time
 - `L::Real`: Length of the path
-- `B<:GaussianRandomField`: Noise field, Ornstein-Uhlenbeck or Pink-Brownian
+- `B<:GaussianRandomField`: Noise field, Ornstein-Uhlenbeck or Pink-Lorentzian
 - `path::Symbol`: Path of the shuttling model, `:straight` or `:forthback`
 """
 function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
@@ -354,10 +354,15 @@ function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
     end
 end
 
-function W(T::Real, L::Real, B::PinkLorentzianField)::Real
+function W(T::Real, L::Real, B::PinkLorentzianField; path=:straight)::Real
     β = T .* B.γ
-    γ = L * B.θ[1]
-    return exp(-B.σ^2 * T^2 * F3(β, γ))
+    γ = L * B.κ
+    if path == :straight
+        return exp(-B.σ^2 * T^2 * F3(β, γ))
+    elseif path == :forthback
+        β /= 2
+        return exp(-B.σ^2 * T^2 * (2*F3(β, γ)+F4(β, γ)))
+    end
 end
 
 
