@@ -7,10 +7,10 @@ increment `h`
 # Arguments
 - `y::Vector{<:Real}`: f(x).
 - `h::Real`: the step of integral.
-- `method::Symbol=:simpson`: the method of integration 
+- `method::Symbol=:trapezoid`: the method of integration 
 
 """
-function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:simpson)::Real
+function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:trapezoid)::Real
     n = length(y) - 1
     if n%2==1
         println("warning: `y` length (number of intervals) must be odd, switching to first order integration.")
@@ -37,7 +37,7 @@ end
 - `a::Real`: The lower bound of the integration range.
 - `b::Real`: The upper bound of the integration range.
 - `n::Int`: The number of points at which to evaluate `f(x)`. For Simpson's rule, `n` should be an odd number.
-- `method::Symbol=:simpson`: The numerical integration method to use. Options are `:simpson` for Simpson's rule and `:trapezoid` for the Trapezoidal rule.
+- `method::Symbol=:trapezoid`: The numerical integration method to use. Options are `:simpson` for Simpson's rule and `:trapezoid` for the Trapezoidal rule.
 
 # Returns
 - `Real`: The estimated value of the integral of `f(x)` over [a, b].
@@ -48,13 +48,13 @@ result = integrate(sin, 0, π, 101, method=:simpson)
 ```
 """
 function integrate(f::Function, a::Real, b::Real, n::Int;
-    method::Symbol=:simpson)::Real
+    method::Symbol=:trapezoid)::Real
     h = (b - a) / (n - 1)
     y = f.(range(a, b, n))
     return integrate(y, h, method=method)
 end
 
-function integrate(f::Function, x_range::Tuple{Real,Real,Int}; method::Symbol=:simpson)::Real
+function integrate(f::Function, x_range::Tuple{Real,Real,Int}; method::Symbol=:trapezoid)::Real
     return integrate(f, x_range..., method=method)
 end
 
@@ -65,7 +65,7 @@ end
 - `f::Function`: The function to be integrated. It should accept two real numbers (x, y) and return a real number.
 - `x_range::Tuple{Real, Real, Int}`: A tuple representing the range and number of points for the x-dimension: (x_min, x_max, num_points_x).
 - `y_range::Tuple{Real, Real, Int}`: A tuple representing the range and number of points for the y-dimension: (y_min, y_max, num_points_y).
-- `method::Symbol=:simpson`: The numerical integration method to use. Options are `:simpson` for Simpson's rule and `:trapezoid` for the Trapezoidal rule.
+- `method::Symbol=:trapezoid`: The numerical integration method to use. Options are `:simpson` for Simpson's rule and `:trapezoid` for the Trapezoidal rule.
 
 # Returns
 - `Real`: The estimated value of the integral of `f(x, y)` over the defined 2D area.
@@ -76,7 +76,7 @@ result = integrate((x, y) -> x * y, (0, 1, 50), (0, 1, 50), method=:simpson)
 ```
 """
 function integrate(f::Function, x_range::Tuple{Real,Real,Int}, y_range::Tuple{Real,Real,Int};
-    method::Symbol=:simpson)::Real
+    method::Symbol=:trapezoid)::Real
     g = y -> integrate(x -> f(x, y), x_range, method=method)
     return integrate(g, y_range, method=method)
 end
@@ -89,10 +89,10 @@ increments `h_x` and `h_y`.
 - `z::Matrix{<:Real}`: f(x, y).
 - `h_x::Real`: the step size of the integral in the x direction.
 - `h_y::Real`: the step size of the integral in the y direction.
-- `method::Symbol=:simpson`: the method of integration.
+- `method::Symbol=:trapezoid`: the method of integration.
 ...
 """
-function integrate(z::ArrayOrSubArray{<:Real,2}, h_x::Real, h_y::Real; method::Symbol=:simpson)::Real
+function integrate(z::ArrayOrSubArray{<:Real,2}, h_x::Real, h_y::Real; method::Symbol=:trapezoid)::Real
     nrows, ncols = size(z)
     # Integrate along x direction for each y
     integral_x_direction = [integrate((@view z[:, j]), h_x, method=method) for j = 1:ncols]
@@ -100,7 +100,7 @@ function integrate(z::ArrayOrSubArray{<:Real,2}, h_x::Real, h_y::Real; method::S
     return integrate(integral_x_direction, h_y, method=method)
 end
 
-integrate(z::ArrayOrSubArray{<:Real,2}, h; method::Symbol=:simpson) = integrate(z, h, h; method=method)
+integrate(z::ArrayOrSubArray{<:Real,2}, h; method::Symbol=:trapezoid) = integrate(z, h, h; method=method)
 
 """
 Special methods for the double integral on symmetric matrix with singularity on diagonal entries.

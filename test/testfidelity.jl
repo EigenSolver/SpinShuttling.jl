@@ -1,57 +1,65 @@
-##
+# ##
 visualize=true
 
-##
+#
 @testset begin "test single spin shuttling fidelity"
-    T=400; L=10; σ = sqrt(2) / 20; M = 5000; N=601; κₜ=1/20;κₓ=1/0.1;
-
-    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-    model=OneSpinModel(T,L,N,B)
-    # test customize println
-    println(model)
-    
-    f1=statefidelity(model)
-    f2, f2_err=sampling(model, statefidelity, M)
-    f3=1/2*(1+W(T,L,B))
-    @test isapprox(f1, f3,rtol=3e-2)
-    @test isapprox(f2, f3, rtol=3e-2) 
-    println("NI:", f1)
-    println("MC:", f2)
-    println("TH:", f3)
+    T=100; L=10; σ = sqrt(2) / 20; M = 5000; N=601; κₜ=1/20;κₓ=1/0.1;
+    γ = (1e-9, 1e3) # MHz
+    B1 = OrnsteinUhlenbeckField(0, [κₜ, κₓ], σ)
+    B2 = PinkLorentzianField(0, κₓ, σ, γ)
+    for B in (B1,B2)
+        model=OneSpinModel(T,L,N,B)
+        # test customize println
+        println(model)
+        
+        f1=statefidelity(model)
+        f2, f2_err=sampling(model, statefidelity, M)
+        f3=1/2*(1+W(T,L,B))
+        @test isapprox(f1, f3,rtol=3e-2)
+        @test isapprox(f2, f3, rtol=3e-2) 
+        println("NI:", f1)
+        println("MC:", f2)
+        println("TH:", f3)
+    end
 end
 
 #
 @testset begin "test single spin forth-back shuttling fidelity"
-    T=200; L=10; σ = sqrt(2) / 20; M = 5000; N=501; κₜ=1/20;κₓ=10; 
+    T=20; σ = sqrt(2) / 20; M = 5000; N=801; κₜ=1/20;κₓ=10;
+    L=0.1; #α=1 
+    γ = (1e-9, 1e3) # MHz 
     # exponential should be smaller than 100
-    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
+    B1 = OrnsteinUhlenbeckField(0, [κₜ, κₓ], σ)
+    B2 = PinkLorentzianField(0, κₓ, σ, γ)
 
-    if visualize
-        t=range(1e-2*T,T, 10)
-        f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), statefidelity, M)[1] for T in t]
-        f_ni=[statefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
-        f_th=[(1+W(T,L,B,path=:forthback))/2 for T in t]
-        fig=lineplot(t, f_mc,
-            xlabel="t", ylabel="F", name="monte-carlo sampling",
-            # ribbon=@. sqrt(f_mc_err/M)
-            )
-            lineplot!(fig, t, f_ni, name="numerical integration")
-            lineplot!(fig, t, f_th, name="theoretical fidelity")
-        display(fig)
+    for B in (B1,B2)
+        if visualize
+            t=range(1e-2*T,T, 10)
+            f_mc=[sampling(OneSpinForthBackModel(T,L,N,B), statefidelity, M)[1] for T in t]
+            f_ni=[statefidelity(OneSpinForthBackModel(T,L,N,B)) for T in t]
+            f_th=[(1+W(T,L,B,path=:forthback))/2 for T in t]
+            fig=lineplot(t, f_mc,
+                xlabel="t", ylabel="F", name="monte-carlo sampling",
+                # ribbon=@. sqrt(f_mc_err/M)
+                )
+                lineplot!(fig, t, f_ni, name="numerical integration")
+                lineplot!(fig, t, f_th, name="theoretical fidelity")
+            display(fig)
+        end
+
+        model=OneSpinForthBackModel(T,L,N,B)
+        # test customize println
+        println(model)
+
+        f1=statefidelity(model)
+        f2, f2_err=sampling(model, statefidelity, M)
+        f3=1/2*(1+W(T, L, B, path=:forthback))
+        @test isapprox(f1, f3,rtol=3e-2)
+        @test isapprox(f2, f3, rtol=3e-2) 
+        println("NI:", f1)
+        println("MC:", f2)
+        println("TH:", f3)
     end
-
-    model=OneSpinForthBackModel(T,L,N,B)
-    # test customize println
-    println(model)
-
-    f1=statefidelity(model)
-    f2, f2_err=sampling(model, statefidelity, M)
-    f3=1/2*(1+W(T, L, B, path=:forthback))
-    @test isapprox(f1, f3,rtol=3e-2)
-    @test isapprox(f2, f3, rtol=3e-2) 
-    println("NI:", f1)
-    println("MC:", f2)
-    println("TH:", f3)
 end
 
 
@@ -114,42 +122,20 @@ end
 end
 
 ##
-@testset begin "test two spin parallel shuttling fidelity"
-    L=10; σ =sqrt(2)/20; M=5000; N=501; T=200; κₜ=1/20; κₓ=1/0.1;
-    D=0.3;
-    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ,κₓ],σ)
-    model=TwoSpinParallelModel(T, D, L, N, B)
-    if visualize
-        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
-    end
-    f1=statefidelity(model)
-    f2, f2_err=sampling(model, statefidelity, M)
-    w=exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
-    f3=1/2*(1+w)
-    @test isapprox(f1, f3,rtol=3e-2)
-    @test isapprox(f2, f3, rtol=3e-2) 
-    println("NI:", f1)
-    println("MC:", f2)
-    println("TH:", f3)
-end
-
-# @testset "test two spin parallel shuttling fidelity with 1/f noise" begin
-#     σ = sqrt(2)/20; M = 5000; N=501; L=10; γ=(1e-9,1e3); # MHz
-#     # 0.01 ~ 100 μs
-#     # v = 0.1 ~ 1000 m/s
-#     v=1; T=L/v; κₓ=10;
-#     # T=10 
-#     # 1/T=0.1 N/T=20 
+# @testset begin "test two spin parallel shuttling fidelity"
+#     L=10; σ =sqrt(2)/20; M=5000; N=501; T=200; κₜ=1/20; κₓ=1/0.1;
 #     D=0.3;
-#     B=PinkLorentzianField(0,[κₓ,κₓ],σ, γ)
+#     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ,κₓ],σ)
 #     model=TwoSpinParallelModel(T, D, L, N, B)
-
+#     if visualize
+#         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
+#     end
 #     f1=statefidelity(model)
 #     f2, f2_err=sampling(model, statefidelity, M)
-#     w=exp(-B.σ^2 * T^2 * 2(1-exp(-κₓ*D)) * SpinShuttling.F3(γ.*T, κₓ*L))
+#     w=exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
 #     f3=1/2*(1+w)
 #     @test isapprox(f1, f3,rtol=3e-2)
-#     @test isapprox(f2, f3, rtol=3e-2)
+#     @test isapprox(f2, f3, rtol=3e-2) 
 #     println("NI:", f1)
 #     println("MC:", f2)
 #     println("TH:", f3)

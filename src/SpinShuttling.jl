@@ -3,7 +3,7 @@ module SpinShuttling
 using LinearAlgebra
 using Statistics
 using SpecialFunctions
-using QuadGK
+using QuadGK, HCubature
 using UnicodePlots: lineplot, lineplot!
 using Base.Threads
 
@@ -222,10 +222,22 @@ Calculate the dephasingfactor according to a special combinator of the noise seq
 - `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
 
 """
+# function dephasingfactor(model::ShuttlingModel, c::Vector{Int})::Real
+#     # @assert length(c) == model.n
+#     R = CompositeRandomFunction(model.R, c)
+#     return characteristicvalue(R)
+# end
+
 function dephasingfactor(model::ShuttlingModel, c::Vector{Int})::Real
-    # @assert length(c) == model.n
-    R = CompositeRandomFunction(model.R, c)
-    return characteristicvalue(R)
+    # rewrite the function to use the hcubature methods
+    M = zeros(model.n, model.n)
+    @threads for i in 1:model.n
+        for j in 1:model.n
+            K(t::AbstractVector)= covariance((t[1], model.X[i](t[1])...), (t[2], model.X[j](t[2])...), model.B)
+            M[i, j] = hcubature(K, [0.0, 0.0], [model.T, model.T], rtol=1e-5)[1]
+        end
+    end
+    return exp.(-sum((c * c').*M)/2)
 end
 
 function dephasingcoeffs(n::Int)::Array{Real,3}
@@ -355,13 +367,14 @@ function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
 end
 
 function W(T::Real, L::Real, B::PinkLorentzianField; path=:straight)::Real
-    β = T .* B.γ
     γ = L * B.κ
     if path == :straight
+        β = T .* B.γ
         return exp(-B.σ^2 * T^2 * F3(β, γ))
     elseif path == :forthback
-        β /= 2
-        return exp(-B.σ^2 * T^2 * (2*F3(β, γ)+F4(β, γ)))
+        T/=2
+        β = T .* B.γ 
+        return exp(-B.σ^2 * T^2*(2*F3(β, γ)+F4(β, γ)))
     end
 end
 
