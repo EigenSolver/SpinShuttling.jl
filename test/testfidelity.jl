@@ -111,7 +111,7 @@ end
     if visualize
         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
     end
-    f1=statefidelity(model)
+    f1=statefidelity(model, method=:adaptive)
     f2, f2_err=sampling(model, statefidelity, M)
     f3=1/2*(1+W(T0, T1, L,B))
     @test isapprox(f1, f3,rtol=3e-2)

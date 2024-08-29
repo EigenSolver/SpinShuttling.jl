@@ -200,14 +200,14 @@ end
 """
 Calculate the dephasing matrix of a given spin shuttling model.
 """
-function dephasingmatrix(model::ShuttlingModel)::Matrix{<:Real}
+function dephasingmatrix(model::ShuttlingModel; method::Symbol=:simpson)::Matrix{<:Real}
     n = model.n
     W = zeros(2^n, 2^n)
     for j in 1:2^n
         W[j, j] = 1
         for k in 1:j-1
             c = [trunc(Int, m(i, j - 1, n) - m(i, k - 1, n)) for i in 1:n]
-            W[j, k] = dephasingfactor(model, c)
+            W[j, k] = dephasingfactor(model, c, method=method)
             W[k, j] = W[j, k]
         end
     end
@@ -220,24 +220,24 @@ Calculate the dephasingfactor according to a special combinator of the noise seq
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
 - `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
-
+- `method::Symbol`: The method to calculate the characteristic value, `:trapezoid`, `:simpson`, `:adaptive`
 """
-# function dephasingfactor(model::ShuttlingModel, c::Vector{Int})::Real
-#     # @assert length(c) == model.n
-#     R = CompositeRandomFunction(model.R, c)
-#     return characteristicvalue(R)
-# end
-
-function dephasingfactor(model::ShuttlingModel, c::Vector{Int})::Real
+function dephasingfactor(model::ShuttlingModel, c::Vector{Int}; method::Symbol=:simpson)::Real
     # rewrite the function to use the hcubature methods
-    M = zeros(model.n, model.n)
-    @threads for i in 1:model.n
-        for j in 1:model.n
-            K(t::AbstractVector)= covariance((t[1], model.X[i](t[1])...), (t[2], model.X[j](t[2])...), model.B)
-            M[i, j] = hcubature(K, [0.0, 0.0], [model.T, model.T], rtol=1e-5)[1]
+    @assert method in [:trapezoid, :simpson, :adaptive]
+    if method==:adaptive
+        M = zeros(model.n, model.n)
+        @threads for i in 1:model.n
+            for j in 1:model.n
+                K(t::AbstractVector)= covariance((t[1], model.X[i](t[1])...), (t[2], model.X[j](t[2])...), model.B)
+                M[i, j] = hcubature(K, [0.0, 0.0], [model.T, model.T], rtol=1e-5)[1]
+            end
         end
+        return exp.(-sum((c * c').*M)/2)
+    else
+        R = CompositeRandomFunction(model.R, c)
+        return characteristicvalue(R, method=method)
     end
-    return exp.(-sum((c * c').*M)/2)
 end
 
 function dephasingcoeffs(n::Int)::Array{Real,3}
@@ -259,9 +259,9 @@ of the covariance matrix.
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
 """
-function statefidelity(model::ShuttlingModel)::Real
+function statefidelity(model::ShuttlingModel; method::Symbol=:simpson)::Real
     Ψ= model.Ψ
-    w=dephasingmatrix(model)
+    w=dephasingmatrix(model, method=method)
     ρt=w.*(Ψ*Ψ')
     return Ψ'*ρt*Ψ
 end

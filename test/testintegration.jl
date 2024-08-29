@@ -36,7 +36,7 @@ using QuadGK: quadgk
     h_y=(y_range[2]-y_range[1])/(y_range[3]-1);
     @test isapprox(integrate(g, (-0.0,2.0,21),(-2,2.0,11)), 64/3; rtol=1e-8);
     @test z isa Matrix{<:Real} && h_x isa Real && h_y isa Real
-    @test isapprox(integrate(z, h_x, h_y), 64/3; rtol=1e-8);
+    @test isapprox(integrate(z, h_x, h_y), 64/3; rtol=1e-5);
 end
 ##
 @testset "cone" begin

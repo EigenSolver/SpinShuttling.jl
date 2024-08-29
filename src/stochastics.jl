@@ -202,12 +202,12 @@ Compute the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicfunction(R::RandomFunction)::Tuple{Vector{<:Real},Vector{<:Number}}
+function characteristicfunction(R::RandomFunction; method::Symbol=:simpson)::Tuple{Vector{<:Real},Vector{<:Number}}
     # need further optimization
     dt = R.P[2][1] - R.P[1][1]
     N = size(R.Σ, 1)
     @assert N % 2 == 1
-    χ(j::Int) = exp.(1im * integrate(view(R.μ, 1:j), dt)) * exp.(-integrate(view(R.Σ, 1:j, 1:j), dt, dt) / 2)
+    χ(j::Int) = exp.(1im * integrate(view(R.μ, 1:j), dt, method=method)) * exp.(-integrate(view(R.Σ, 1:j, 1:j), dt, dt,method=method) / 2)
     t = [p[1] for p in R.P[2:2:N-1]]
     f = [χ(j) for j in 3:2:N] # only for simpson's rule
     return (t, f)
@@ -218,7 +218,9 @@ Compute the final phase of the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicvalue(R::RandomFunction)::Number
+function characteristicvalue(R::RandomFunction; method::Symbol=:simpson)::Number
     dt = R.P[2][1] - R.P[1][1]
-    return exp.(1im * integrate(R.μ, dt)) * exp.(-integrate((@view R.Σ[:, :]), dt, dt) / 2)
+    f1=exp.(1im * integrate(R.μ, dt, method=method))
+    f2=exp.(-integrate((@view R.Σ[:, :]), dt, dt, method=method) / 2)
+    return f1*f2
 end
