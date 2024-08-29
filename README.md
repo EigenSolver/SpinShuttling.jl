@@ -10,3 +10,5 @@ From the Julia REPL, type `]` to enter the Pkg REPL mode and run
 ```julia
 pkg> add SpinShuttling
 ```
+
+![two_spin_shuttling](./docs/src/assets/animation2spins.gif)
