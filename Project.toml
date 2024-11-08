@@ -4,6 +4,7 @@ authors = ["Yuning Zhang"]
 version = "0.2.8"
 
 [deps]
+GaussianRandomFields = "e4b2fa32-6e09-5554-b718-106ed5adafe9"
 HCubature = "19dc6840-f33b-545b-b366-655c7e3ffd49"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
