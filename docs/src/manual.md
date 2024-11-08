@@ -66,6 +66,10 @@ CompositeRandomFunction
 ```
 
 ```@docs
+initialize!
+```
+
+```@docs
 characteristicfunction
 ```
 

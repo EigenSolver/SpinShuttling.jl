@@ -27,22 +27,22 @@ struct PinkLorentzianField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
-"""
-Similar type of `RandomFunction` in Mathematica.
-Can be used to generate a time series on a given time array subject to 
-a Gaussian random process traced from a Gaussian random field.
-
-# Arguments
-- `μ::Vector{<:Real}`: mean of the process
-- `P::Vector{<:Point}`: time-position array
-- `Σ::Symmetric{<:Real}`: covariance matrices
-- `L::Matrix{<:Real}`: lower triangle matrix of Cholesky decomposition
-"""
 mutable struct RandomFunction
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
     L::Union{Matrix{<:Real}, Nothing} # Lower triangle matrix of Cholesky decomposition
+    """
+    Create a new `RandomFunction` instance.
+
+    # Arguments
+    - `P::Vector{<:Point}`: Sample trace.
+    - `process::GaussianRandomField`: The Gaussian random field process.
+    - `initialize::Bool=true`: Whether to initialize the Cholesky decomposition of the covariance matrix.
+
+    # Returns
+    A new `RandomFunction` instance.
+    """
     function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField; initialize::Bool=true)
         μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ = covariancematrix(P, process)
@@ -55,6 +55,18 @@ mutable struct RandomFunction
         return new(μ, P, Σ, L)
     end
 
+    """
+    Create a new `RandomFunction` instance with precomputed values.
+
+    # Arguments
+    - `μ::Vector{<:Real}`: Mean vector.
+    - `P::Vector{<:Point}`: Sample trace.
+    - `Σ::Symmetric{<:Real}`: Covariance matrix.
+    - `L::Matrix{<:Real}`: Lower triangle matrix of Cholesky decomposition.
+
+    # Returns
+    A new `RandomFunction` instance.
+    """
     function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Matrix{<:Real})
         new(μ, P, Σ, L)
     end
