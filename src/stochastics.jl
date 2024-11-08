@@ -38,15 +38,20 @@ a Gaussian random process traced from a Gaussian random field.
 - `Σ::Symmetric{<:Real}`: covariance matrices
 - `L::Matrix{<:Real}`: lower triangle matrix of Cholesky decomposition
 """
-struct RandomFunction
+mutable struct RandomFunction
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
-    L::Matrix{<:Real} # Lower triangle matrix of Cholesky decomposition
-    function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField)
+    L::Union{Matrix{<:Real}, Nothing} # Lower triangle matrix of Cholesky decomposition
+    function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField; initialize::Bool=true)
         μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ = covariancematrix(P, process)
-        L = collect(cholesky(Σ).L)
+        if initialize
+            L = collect(cholesky(Σ).L)
+        else
+            L = nothing
+        end
+        
         return new(μ, P, Σ, L)
     end
 
@@ -55,6 +60,12 @@ struct RandomFunction
     end
 end
 
+"""
+Initialize the Cholesky decomposition of the covariance matrix of a random function.
+"""
+function initialize!(R::RandomFunction)
+    R.L = collect(cholesky(R.Σ).L)
+end
 
 """
 Divide the covariance matrix of a direct summed random function into partitions. 

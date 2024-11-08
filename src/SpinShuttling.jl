@@ -17,7 +17,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
     TwoSpinSequentialModel, TwoSpinParallelModel, 
     RandomFunction, CompositeRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField
-export statefidelity, sampling, characteristicfunction, characteristicvalue
+export statefidelity, sampling, initialize!, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
 export W
 
@@ -73,12 +73,12 @@ with arbitrary shuttling path x(t).
 - `x::Function`: Shuttling path
 """
 function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
-    B::GaussianRandomField, x::Function)
+    B::GaussianRandomField, x::Function; initialize::Bool=true)
 
     t = range(0, T, N)
     f(x::Function, t::Real) = (t, x(t)...)
     P = f.(x, t)
-    R = RandomFunction(P, B)
+    R = RandomFunction(P, B, initialize=initialize)
     model = ShuttlingModel(1, Ψ, T, N, B, [x], R)
     return model
 end
@@ -128,13 +128,13 @@ with arbitrary shuttling paths x₁(t), x₂(t).
 - `x₂::Function`: Shuttling path for the second spin
 """
 function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
-    B::GaussianRandomField, x₁::Function, x₂::Function)
+    B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
 
     X = [x₁, x₂]
     t = range(0, T, N)
     f(x::Function, t::Real) = (t, x(t)...)
     P = vcat(f.(x₁, t), f.(x₂, t))
-    R = RandomFunction(P, B)
+    R = RandomFunction(P, B, initialize=initialize)
     model = ShuttlingModel(2, Ψ, T, N, B, X, R)
     return model
 end

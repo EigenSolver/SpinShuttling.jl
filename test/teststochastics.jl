@@ -11,7 +11,8 @@ visualize=true
     t=range(0, T, N)
     P=collect(zip(t, v.*t))
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-    R=RandomFunction(P , B)
+    R=RandomFunction(P , B, initialize=false)
+    initialize!(R)
     @test R() isa Vector{<:Real}
     @test R.Σ isa Symmetric
 
