@@ -89,8 +89,8 @@ One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
 The qubit is shuttled at constant velocity along the path `x(t)=L/T*t`, 
 with total time `T` in `μs` and length `L` in `μm`.
 """
-OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField) =
-    OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, t::Real -> L / T * t)
+OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true) =
+    OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, t::Real -> L / T * t, initialize=initialize)
 
 """
 One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
@@ -105,13 +105,13 @@ with total time `T` in `μs` and length `L` in `μm`.
 - `B::GaussianRandomField`: Noise field
 - `v::Real`: Velocity of the shuttling
 """
-function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField)
+function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)   
     x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
-    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ -> x(τ, 2L / T, L))
+    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ -> x(τ, 2L / T, L), initialize=initialize)
 end
 
-function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
-    return OneSpinForthBackModel(T, T, L, N, B)
+function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+    return OneSpinForthBackModel(T, T, L, N, B, initialize=initialize)
 end
 
 
@@ -145,7 +145,7 @@ The qubits are shuttled at constant velocity along the path `x₁(t)=L/T₁*t` a
 The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`.
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
 """
-function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField)
+function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     function x₁(t::Real)::Real
         if t < 0
             return 0
@@ -168,7 +168,7 @@ function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::Gaus
     end
     Ψ = 1 / √2 .* [0, 1+0im, -1+0im, 0]
     T = T₀ + T₁
-    return TwoSpinModel(Ψ, T, N, B, x₁, x₂)
+    return TwoSpinModel(Ψ, T, N, B, x₁, x₂; initialize=initialize)
 end
 
 """
@@ -178,11 +178,11 @@ The qubits are shuttled at constant velocity along the 2D path
 The total shuttling time is `T` and the length of the path is `L` in `μm`.
 """
 function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
-    B::GaussianRandomField)
+    B::GaussianRandomField; initialize::Bool=true)
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
     Ψ = 1 / √2 .* [0.0, 1+0im, -1+0im, 0.0]
-    return TwoSpinModel(Ψ, T, N, B, x₁, x₂)
+    return TwoSpinModel(Ψ, T, N, B, x₁, x₂, initialize=initialize)
 end
 
 
