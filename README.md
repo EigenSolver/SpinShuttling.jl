@@ -11,13 +11,13 @@ From the Julia REPL, type `]` to enter the Pkg REPL mode and run
 pkg> add SpinShuttling
 ```
 
-## Example: 
-
 Consider two spin qubits sited on a closed pair of quantum dots (QDots). If the distance between the two QDots is small enough (microscopic or mesoscopic scale), then the noise experienced by them will have a non-zero covariance since they will be interacting with the same shared environment. The spatial correlation can be modeled by a Gaussian random field, $W(t, \boldsymbol{x})$. Since the wavefunction of the spin is highly constrained by the moving potential well. We can describe the position of a spin carrier (electron or holes), as a function of time $x(t, \boldsymbol{x})$. Such a trajectory will determine a route-specific projection on the field $W(t, \boldsymbol{x}(t))$, which gives the noise experienced by the spin. 
-
 For multiple spin qubits sited within a microscopic nano device, their collective dephasing behavior will be non-trivially impacted by the covariance between noises. 
 
-![Sequential shuttling of a pair of entangled qubit](./docs/src/assets/animation2spins.gif)
+
+## Example: 
+
+Sequential shuttling of a pair of entangled qubits. 
 
 ```julia
 L=10; σ =sqrt(2)/20; M=5000; N=501; T1=100; T0=25; κₜ=1/20; κₓ=1/0.1;
@@ -33,6 +33,7 @@ w=dephasingmatrix(model)
 
 println(ρ)
 ```
+![Sequential shuttling of a pair of entangled qubit](./docs/src/assets/animation2spins.gif)
 
 ```
 f1=statefidelity(model)
