@@ -28,7 +28,7 @@ P=collect(zip(t, v.*t));</code></pre><pre class="documenter-example-output"><cod
  (19.809045226130653, 39.618090452261306)
  (19.90452261306533, 39.80904522613065)
  (20.0, 40.0)</code></pre><p>A Gaussian random process (random function) can be obtained by projecting the Gaussian random field along the time-space array <code>P</code>. Then, we can use <code>R()</code> to invoke the process and generate a random time series.</p><pre><code class="language-julia hljs">R=RandomFunction(P, B)
-plot(t, R(), xlabel=&quot;t&quot;, ylabel=&quot;B(t)&quot;, size=(400,300))</code></pre><img src="0e7bfe6f.svg" alt="Example block output"/><h2 id="Shuttling-of-a-single-spin"><a class="docs-heading-anchor" href="#Shuttling-of-a-single-spin">Shuttling of a single spin</a><a id="Shuttling-of-a-single-spin-1"></a><a class="docs-heading-anchor-permalink" href="#Shuttling-of-a-single-spin" title="Permalink"></a></h2><p>We can follow the above approach to define a single-spin shuttling model.</p><pre><code class="language-julia hljs">σ = sqrt(2) / 20; # variance of the process
+plot(t, R(), xlabel=&quot;t&quot;, ylabel=&quot;B(t)&quot;, size=(400,300))</code></pre><img src="7b7fb92f.svg" alt="Example block output"/><h2 id="Shuttling-of-a-single-spin"><a class="docs-heading-anchor" href="#Shuttling-of-a-single-spin">Shuttling of a single spin</a><a id="Shuttling-of-a-single-spin-1"></a><a class="docs-heading-anchor-permalink" href="#Shuttling-of-a-single-spin" title="Permalink"></a></h2><p>We can follow the above approach to define a single-spin shuttling model.</p><pre><code class="language-julia hljs">σ = sqrt(2) / 20; # variance of the process
 κₜ=1/20; # temporal correlation
 κₓ=1/0.1; # spatial correlation
 B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ);
@@ -47,14 +47,14 @@ Process Time: T=400
 Shuttling Paths:</code></pre><p>The <code>println</code> function provides us with an overview of the model. It&#39;s a single spin shuttling problem with the initial state <code>Ψ₀</code> and an Ornstein-Uhlenbeck noise. The total time of simulation is <code>T</code>, which is discretized into <code>N</code> steps.</p><p>The effective noise of this spin qubit is completely characterized by its covariance matrix.  </p><pre><code class="language-julia hljs">heatmap(collect(sqrt.(model.R.Σ)), title=&quot;sqrt cov, 1-spin one-way shuttling&quot;,
 size=(400,300),
 xlabel=&quot;t1&quot;, ylabel=&quot;t2&quot;, dpi=300,
-right_margin=5Plots.mm)</code></pre><img src="68a8edb1.svg" alt="Example block output"/><p>The state fidelity after such a quantum process can be obtained using numerical integration of the covariance matrix.  </p><pre><code class="language-julia hljs">f1=statefidelity(model); # direct integration
+right_margin=5Plots.mm)</code></pre><img src="58aa7cd9.svg" alt="Example block output"/><p>The state fidelity after such a quantum process can be obtained using numerical integration of the covariance matrix.  </p><pre><code class="language-julia hljs">f1=statefidelity(model); # direct integration
 
-f2, f2_err=sampling(model, statefidelity, M); # Monte-Carlo sampling</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(0.5217829128906277, 0.12339391565451951)</code></pre><p>An analytical solution is also available for single-spin shuttling at a constant velocity. </p><pre><code class="language-julia hljs">f3=1/2*(1+W(T,L,B));</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.5183394145238882</code></pre><p>We can compare the results form the three methods and check their consistency.</p><pre><code class="language-julia hljs">@assert isapprox(f1, f3,rtol=1e-2)
+f2, f2_err=sampling(model, statefidelity, M); # Monte-Carlo sampling</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(0.5157795156357077, 0.1244062226461078)</code></pre><p>An analytical solution is also available for single-spin shuttling at a constant velocity. </p><pre><code class="language-julia hljs">f3=1/2*(1+W(T,L,B));</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.5183394145238882</code></pre><p>We can compare the results form the three methods and check their consistency.</p><pre><code class="language-julia hljs">@assert isapprox(f1, f3,rtol=1e-2)
 @assert isapprox(f2, f3, rtol=1e-2)
 println(&quot;NI:&quot;, f1)
 println(&quot;MC:&quot;, f2)
 println(&quot;TH:&quot;, f3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">NI:0.5172897445804852
-MC:0.5217829128906277
+MC:0.5157795156357077
 TH:0.5183394145238882</code></pre><p>The pure dephasing channel is computationally simple and can be represented by a dephasing matrix <span>$w$</span>, such that the final density state after the channel is given by <span>$\mathcal{E}(\rho)=w \odot\rho$</span>. Here <span>$\odot$</span> is an element-wise Hadmard product. </p><pre><code class="language-julia hljs">Ψ= model.Ψ
 ρ=Ψ*Ψ&#39;
 w=dephasingmatrix(model)
@@ -72,17 +72,17 @@ Process Time: T=125
 Shuttling Paths:</code></pre><p>The system is initialized in the Bell state <span>$\ket{\Psi^-}$</span>.  The model encapsulated a model of two spins shuttled in a sequential manner, as we can see from the two trajectories <code>x1(t)</code> and <code>x2(t)</code>. One spin goes first and then follows another, with a waiting time of <code>T0</code>. This is modeled by the piece-wise linear trajectories.  We can see some quite interesting covariance from such a system.</p><pre><code class="language-julia hljs">plot(model.R.P[1:N,1], label=&quot;x1(t)&quot;,
 xlabel=&quot;t&quot;, ylabel=&quot;x&quot;,size=(400,300), dpi=300
 )
-plot!(model.R.P[N+1:2N,1], label=&quot;x2(t)&quot;)</code></pre><img src="d4dff1d7.svg" alt="Example block output"/><pre><code class="language-julia hljs">heatmap(collect(model.R.Σ)*1e3, title=&quot;covariance, 2-spin sequential shuttling&quot;,
+plot!(model.R.P[N+1:2N,1], label=&quot;x2(t)&quot;)</code></pre><img src="48512c70.svg" alt="Example block output"/><pre><code class="language-julia hljs">heatmap(collect(model.R.Σ)*1e3, title=&quot;covariance, 2-spin sequential shuttling&quot;,
 size=(400,300),
 xlabel=&quot;t1&quot;, ylabel=&quot;t2&quot;, dpi=300,
-right_margin=5Plots.mm)</code></pre><img src="2069d1a7.svg" alt="Example block output"/><p>We can check the dephasing of the system and calculate its fidelity as before. </p><pre><code class="language-julia hljs">f1=statefidelity(model)
+right_margin=5Plots.mm)</code></pre><img src="880c6604.svg" alt="Example block output"/><p>We can check the dephasing of the system and calculate its fidelity as before. </p><pre><code class="language-julia hljs">f1=statefidelity(model)
 f2, f2_err=sampling(model, statefidelity, M)
 f3=1/2*(1+W(T0, T1, L,B))
 
 println(&quot;NI:&quot;, f1)
 println(&quot;MC:&quot;, f2)
 println(&quot;TH:&quot;, f3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">NI:0.6234798910481352
-MC:0.6178780644842528
+MC:0.629095938028564
 TH:0.6238118248013063</code></pre><p>The density matrix after the channel can be given by the dephasing matrix.</p><pre><code class="language-julia hljs">Ψ= model.Ψ
 ρ=Ψ*Ψ&#39;
 w=dephasingmatrix(model)
@@ -91,4 +91,4 @@ w=dephasingmatrix(model)
  0.0+0.0im       0.0+0.0im       0.0-0.0im  0.0+0.0im
  0.0+0.0im       0.5+0.0im  -0.12348-0.0im  0.0+0.0im
  0.0+0.0im  -0.12348+0.0im       0.5+0.0im  0.0+0.0im
- 0.0+0.0im       0.0+0.0im       0.0-0.0im  0.0+0.0im</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../manual/">Manual »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Wednesday 20 November 2024 13:23">Wednesday 20 November 2024</span>. Using Julia version 1.10.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 0.0+0.0im       0.0+0.0im       0.0-0.0im  0.0+0.0im</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../manual/">Manual »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Monday 2 December 2024 15:51">Monday 2 December 2024</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
