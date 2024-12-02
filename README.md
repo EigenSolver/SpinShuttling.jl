@@ -11,8 +11,18 @@ From the Julia REPL, type `]` to enter the Pkg REPL mode and run
 pkg> add SpinShuttling
 ```
 
-Consider two spin qubits sited on a closed pair of quantum dots (QDots). If the distance between the two QDots is small enough (microscopic or mesoscopic scale), then the noise experienced by them will have a non-zero covariance since they will be interacting with the same shared environment. The spatial correlation can be modeled by a Gaussian random field, $W(t, \boldsymbol{x})$. Since the wavefunction of the spin is highly constrained by the moving potential well. We can describe the position of a spin carrier (electron or holes), as a function of time $x(t, \boldsymbol{x})$. Such a trajectory will determine a route-specific projection on the field $W(t, \boldsymbol{x}(t))$, which gives the noise experienced by the spin. 
+Consider two spin qubits sited on a close pair of quantum dots (QDots). It can be easily imagined that the two electrons or holes interact with the same ensemble of charge defects, nuclear spins, and other disorders. The same environment will decohere our qubits with similar or, more precisely, correlated noises. 
+
+In a more general situation, we can consider a register of spin qubits sited on a 2D array of quantum dots. The statistical fluctuations, or noise, associated with each spin qubit will also share similar properties due to their spatial neighborhoods. That means the noises experienced by any two qubits will have a non-zero cross-covariance. As the distance between the two qubits goes further, their noise will be less correlated since they will share less common environments. 
 For multiple spin qubits sited within a microscopic nano device, their collective dephasing behavior will be non-trivially impacted by the covariance between noises. 
+
+From a statistical point of view, this physical picture implies that noises associated with the spins are correlated not only in time but also in space. 
+A Gaussian random field, $W(t, \boldsymbol{x})$, can be used to model the temporally and spatially correlated noise. 
+As suggested by the name "quantum dot", the wavefunction of the single electron or hole in a QDot is highly confined by the potential well. Thus, it is reasonable to assume a "position", a dot $\boldsymbol{x}$, for an electronic qubit, which is just the center of its wavefunction.  
+
+The same random field model of noise can also be used to treat the dephasing of spin shuttling, where a spin qubit is conveyed by a moving potential well. 
+The moving of the dot can be captured by a simple function, \boldsymbol{x}(t). Then, he noise experienced by the spin can be given the route-specific projection on the noise field $W(t, \boldsymbol{x}(t))$. 
+
 
 
 ## Example: 
