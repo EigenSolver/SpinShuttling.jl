@@ -4,7 +4,6 @@ using LinearAlgebra
 using Statistics
 using SpecialFunctions
 using QuadGK, HCubature
-using UnicodePlots: lineplot, lineplot!
 using Base.Threads
 
 include("integration.jl")
@@ -58,15 +57,6 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Time Discretization: N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
     println(io, "Shuttling Paths:")
-    if model.n==1
-        t = range(0, model.T, model.N)
-        fig = lineplot(t, model.X[1].(t); width=30, height=9,
-            name="x1(t)")
-        for i in 2:model.n
-            lineplot!(fig, t, model.X[i].(t), name="x$i(t)")
-        end
-        display(fig)
-    end
 end
 
 """
