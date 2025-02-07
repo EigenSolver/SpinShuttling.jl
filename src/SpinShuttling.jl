@@ -10,7 +10,9 @@ using Base.Threads
 include("integration.jl")
 include("analytics.jl")
 include("stochastics.jl")
+include("geometry.jl")
 include("sampling.jl")
+
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
@@ -42,6 +44,10 @@ struct ShuttlingModel
     B::GaussianRandomField # Noise field
     X::Vector{Function}
     R::RandomFunction
+    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Vector{Function})
+        R = restriction(X, range(0, T, N), B)
+        new(n, Ψ, T, N, B, X, R)
+    end
 end
 
 function Base.show(io::IO, model::ShuttlingModel)
@@ -75,11 +81,11 @@ with arbitrary shuttling path x(t).
 function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function; initialize::Bool=true)
 
-    t = range(0, T, N)
-    f(x::Function, t::Real) = (t, x(t)...)
-    P = f.(x, t)
-    R = RandomFunction(P, B, initialize=initialize)
-    model = ShuttlingModel(1, Ψ, T, N, B, [x], R)
+    # t = range(0, T, N)
+    # f(x::Function, t::Real) = (t, x(t)...)
+    # P = f.(x, t)
+    # R = RandomFunction(P, B, initialize=initialize)
+    model = ShuttlingModel(1, Ψ, T, N, B, [x])
     return model
 end
 
@@ -131,11 +137,11 @@ function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
 
     X = [x₁, x₂]
-    t = range(0, T, N)
-    f(x::Function, t::Real) = (t, x(t)...)
-    P = vcat(f.(x₁, t), f.(x₂, t))
-    R = RandomFunction(P, B, initialize=initialize)
-    model = ShuttlingModel(2, Ψ, T, N, B, X, R)
+    # t = range(0, T, N)
+    # f(x::Function, t::Real) = (t, x(t)...)
+    # P = vcat(f.(x₁, t), f.(x₂, t))
+    # R = RandomFunction(P, B, initialize=initialize)
+    model = ShuttlingModel(2, Ψ, T, N, B, X)
     return model
 end
 
@@ -340,6 +346,23 @@ function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray
     return W
 end
 
+
+"""
+Restrict the random field along a parameteized curve. 
+# Arguments
+- `X::Vector{Function}`: a vector of functions [x₁(t), x₂(t), ...]
+- `t::AbstractArray`: time array
+- `B::GaussianRandomField`: a Gaussian random field
+
+# Returns
+- `RandomFunction`: a new random function restricted along the curve
+
+"""
+function restriction(X::Vector{Function},t::AbstractArray,B::GaussianRandomField) 
+    f(x::Function, t::Real) = (t, x(t)...)
+    P = vcat([f.(x, t) for x in X]...)
+    return RandomFunction(P, B, initialize=true)
+end
 
 """
 Analytical dephasing factor of a one-spin shuttling model.
