@@ -33,7 +33,7 @@ specified by the paths of the shuttled spins.
 - `T::Real`: Maximum time 
 - `N::Int`: Time discretization 
 - `B::GaussianRandomField`: Noise field
-- `X::Vector{Function}`: Shuttling paths, the length of the vector must be `n
+- `X::Vector{<:Function}`: Shuttling paths, the length of the vector must be `n
 - `R::RandomFunction`: Random function of the sampled noises on paths
 """
 struct ShuttlingModel
@@ -42,10 +42,10 @@ struct ShuttlingModel
     T::Real # time 
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
-    X::Vector{Function}
+    X::Vector{<:Function}
     R::RandomFunction
-    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Vector{Function})
-        R = restriction(X, range(0, T, N), B)
+    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Vector{<:Function}; initialize::Bool=true)
+        R = restriction(X, range(0, T, N), B; initialize=initialize)
         new(n, Ψ, T, N, B, X, R)
     end
 end
@@ -58,13 +58,15 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Time Discretization: N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
     println(io, "Shuttling Paths:")
-    t = range(0, model.T, model.N)
-    fig = lineplot(t, model.X[1].(t); width=30, height=9,
-        name="x1(t)")
-    for i in 2:model.n
-        lineplot!(fig, t, model.X[i].(t), name="x$i(t)")
+    if model.n==1
+        t = range(0, model.T, model.N)
+        fig = lineplot(t, model.X[1].(t); width=30, height=9,
+            name="x1(t)")
+        for i in 2:model.n
+            lineplot!(fig, t, model.X[i].(t), name="x$i(t)")
+        end
+        display(fig)
     end
-    display(fig)
 end
 
 """
@@ -81,11 +83,7 @@ with arbitrary shuttling path x(t).
 function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function; initialize::Bool=true)
 
-    # t = range(0, T, N)
-    # f(x::Function, t::Real) = (t, x(t)...)
-    # P = f.(x, t)
-    # R = RandomFunction(P, B, initialize=initialize)
-    model = ShuttlingModel(1, Ψ, T, N, B, [x])
+    model = ShuttlingModel(1, Ψ, T, N, B, [x], initialize=initialize)
     return model
 end
 
@@ -137,11 +135,7 @@ function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
 
     X = [x₁, x₂]
-    # t = range(0, T, N)
-    # f(x::Function, t::Real) = (t, x(t)...)
-    # P = vcat(f.(x₁, t), f.(x₂, t))
-    # R = RandomFunction(P, B, initialize=initialize)
-    model = ShuttlingModel(2, Ψ, T, N, B, X)
+    model = ShuttlingModel(2, Ψ, T, N, B, X; initialize=initialize)
     return model
 end
 
@@ -350,7 +344,7 @@ end
 """
 Restrict the random field along a parameteized curve. 
 # Arguments
-- `X::Vector{Function}`: a vector of functions [x₁(t), x₂(t), ...]
+- `X::Vector{<:Function}`: a vector of functions [x₁(t), x₂(t), ...]
 - `t::AbstractArray`: time array
 - `B::GaussianRandomField`: a Gaussian random field
 
@@ -358,10 +352,10 @@ Restrict the random field along a parameteized curve.
 - `RandomFunction`: a new random function restricted along the curve
 
 """
-function restriction(X::Vector{Function},t::AbstractArray,B::GaussianRandomField) 
+function restriction(X::Vector{<:Function},t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::RandomFunction 
     f(x::Function, t::Real) = (t, x(t)...)
     P = vcat([f.(x, t) for x in X]...)
-    return RandomFunction(P, B, initialize=true)
+    return RandomFunction(P, B, initialize=initialize)
 end
 
 """
