@@ -33,7 +33,15 @@ specified by the paths of the shuttled spins.
 - `N::Int`: Time discretization 
 - `B::GaussianRandomField`: Noise field
 - `X::Vector{<:Function}`: Shuttling paths, the length of the vector must be `n
-- `R::RandomFunction`: Random function of the sampled noises on paths
+- `initialize::Bool`: Initialize the random function
+
+# Fields
+- `R::RandomFunction`: Random function defined by the noise field and the paths
+
+# Example
+```julia
+model = ShuttlingModel(1, [1+0im, 0+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), [t->t])
+```
 """
 struct ShuttlingModel
     n::Int # number of spins
@@ -69,6 +77,12 @@ with arbitrary shuttling path x(t).
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
 - `x::Function`: Shuttling path
+- `initialize::Bool`: Initialize the random function
+
+# Example
+```julia
+model = OneSpinModel(1 / √2 * [1+0im, 1+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t)
+```
 """
 function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function; initialize::Bool=true)
@@ -82,6 +96,18 @@ end
 One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
 The qubit is shuttled at constant velocity along the path `x(t)=L/T*t`, 
 with total time `T` in `μs` and length `L` in `μm`.
+
+# Arguments
+- `T::Real`: Maximum time
+- `L::Real`: Length of the path
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+- `v::Real`: Velocity of the shuttling
+
+# Example
+```julia
+model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), 1.0)
+```
 """
 OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true) =
     OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, t::Real -> L / T * t, initialize=initialize)
@@ -98,6 +124,11 @@ with total time `T` in `μs` and length `L` in `μm`.
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
 - `v::Real`: Velocity of the shuttling
+
+# Example
+```julia
+model = OneSpinForthBackModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
+```
 """
 function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)   
     x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
@@ -120,6 +151,11 @@ with arbitrary shuttling paths x₁(t), x₂(t).
 - `B::GaussianRandomField`: Noise field
 - `x₁::Function`: Shuttling path for the first spin
 - `x₂::Function`: Shuttling path for the second spin
+
+# Example
+```julia
+model = TwoSpinModel(1 / √2 * [1+0im, 1+0im, 1+0im, 1+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t, t->t+1)
+```
 """
 function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
@@ -134,6 +170,18 @@ Two spin shuttling model initialized at the singlet state `|Ψ₀⟩=1/√2(|↑
 The qubits are shuttled at constant velocity along the path `x₁(t)=L/T₁*t` and `x₂(t)=L/T₁*(t-T₀)`. 
 The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`.
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
+
+# Arguments
+- `T₀::Real`: Delay time
+- `T₁::Real`: Shuttling time
+- `L::Real`: Length of the path
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+
+# Example
+```julia
+model = TwoSpinSequentialModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
+```
 """
 function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     function x₁(t::Real)::Real
@@ -166,6 +214,18 @@ Two spin shuttling model initialized at the singlet state `|Ψ₀⟩=1/√2(|↑
 The qubits are shuttled at constant velocity along the 2D path 
 `x₁(t)=L/T*t, y₁(t)=0` and `x₂(t)=L/T*t, y₂(t)=D`.
 The total shuttling time is `T` and the length of the path is `L` in `μm`.
+
+# Arguments
+- `T::Real`: Total time
+- `D::Real`: Distance between the two qubits
+- `L::Real`: Length of the path
+- `N::Int`: Time discretization
+- `B::GaussianRandomField`: Noise field
+
+# Example
+```julia
+model = TwoSpinParallelModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
+```
 """
 function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
     B::GaussianRandomField; initialize::Bool=true)
@@ -189,6 +249,19 @@ end
 
 """
 Calculate the dephasing matrix of a given spin shuttling model.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `method::Symbol`: The method to calculate the dephasing factor, `:trapezoid`, `:simpson`, `:adaptive`
+
+# Returns
+- `W::Matrix{<:Real}`: The dephasing matrix
+
+# Example
+```julia
+model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t)
+W = dephasingmatrix(model)
+```
 """
 function dephasingmatrix(model::ShuttlingModel; method::Symbol=:simpson)::Matrix{<:Real}
     n = model.n
@@ -211,6 +284,16 @@ Calculate the dephasingfactor according to a special combinator of the noise seq
 - `model::ShuttlingModel`: The spin shuttling model
 - `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
 - `method::Symbol`: The method to calculate the characteristic value, `:trapezoid`, `:simpson`, `:adaptive`
+
+# Returns
+- `Real`: The dephasing factor
+
+# Example
+```julia
+model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t)
+c = [1, 1, 1]
+dephasingfactor(model, c)
+```
 """
 function dephasingfactor(model::ShuttlingModel, c::Vector{Int}; method::Symbol=:simpson)::Real
     # rewrite the function to use the hcubature methods
@@ -248,6 +331,10 @@ of the covariance matrix.
 
 # Arguments
 - `model::ShuttlingModel`: The spin shuttling model
+- `method::Symbol`: The method to calculate the dephasing factor, `:trapezoid`, `:simpson`, `:adaptive`
+
+# Returns
+- `Real`: The state fidelity
 """
 function statefidelity(model::ShuttlingModel; method::Symbol=:simpson)::Real
     Ψ= model.Ψ
@@ -337,6 +424,7 @@ Restrict the random field along a parameteized curve.
 - `X::Vector{<:Function}`: a vector of functions [x₁(t), x₂(t), ...]
 - `t::AbstractArray`: time array
 - `B::GaussianRandomField`: a Gaussian random field
+- `initialize::Bool`: initialize the random function
 
 # Returns
 - `RandomFunction`: a new random function restricted along the curve
