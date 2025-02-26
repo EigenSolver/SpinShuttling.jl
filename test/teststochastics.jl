@@ -45,6 +45,40 @@ visualize=true
     end
 end
 
+@testset "semi-definite positive covariance matrix" begin
+    σ = 1; N = 201; 
+    M=10000;
+    κₓ = 6.0;  # approximately 150nm
+    T = 1;
+    δt = T / N;
+    γ = (1e-9, 1e3) # MHz
+    # 0.0001 ~ 10000 μs
+    # v = 1e-4 ~ 1e5 m/s
+    B = PinkLorentzianField(0, κₓ, σ, γ)
+
+    v=1; l=5
+    ψ0=1/√2*[0im,0,1,0,-1,0,0,0];
+    ψ1=1/√6*[0im,2,-1,0,-1,0,0,0];
+    lc=1/κₓ;
+
+    function x(t::Real, v::Real, t1::Real, t2::Real)::Real
+        if t<t1
+            return 0
+        elseif t<t2
+            return v*(t-t1)
+        else
+            return v*(t2-t1)
+        end
+    end
+    
+    X_seq_shuttle_delay(v::Real, τ::Real, l::Real, d::Real) = [t->x(t,v,0,l/v)+2d, t->x(t-τ,v,0,l/v)+d,t->x(t-2τ,v,0,l/v)]
+    realistic_seq_shuttling(v::Real, τ::Real, l::Real, d::Real) = ShuttlingModel(3, ψ1, 2τ+l/v, N, B, X_seq_shuttle_delay(v, τ, l, d))
+    model=realistic_seq_shuttling(v, lc/v, l, 0.000)
+    
+    @test issymmetric(model.R.Σ)
+    @test ishermitian(model.R.Σ)
+    @test isposdef(model.R.Σ) == false
+end
 #
 @testset "trapezoid vs simpson for covariance matrix" begin
     L=10; σ = sqrt(2) / 20; N=501; κₜ=1/20;κₓ=1/0.1;

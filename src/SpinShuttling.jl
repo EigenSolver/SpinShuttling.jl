@@ -308,7 +308,7 @@ function dephasingfactor(model::ShuttlingModel, c::Vector{Int}; method::Symbol=:
         end
         return exp.(-sum((c * c').*M)/2)
     else
-        R = CompositeRandomFunction(model.R, c)
+        R = CompositeRandomFunction(model.R, c, initialize=false)
         return characteristicvalue(R, method=method)
     end
 end

@@ -31,7 +31,23 @@ mutable struct RandomFunction
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
-    L::Union{Matrix{<:Real}, Nothing} # Lower triangle matrix of Cholesky decomposition
+    L::Union{Matrix{<:Real},Nothing} # Lower triangle matrix of Cholesky decomposition
+    """
+    Create a new `RandomFunction` instance with precomputed values.
+
+    # Arguments
+    - `μ::Vector{<:Real}`: Mean vector.
+    - `P::Vector{<:Point}`: Sample trace.
+    - `Σ::Symmetric{<:Real}`: Covariance matrix.
+    - `L::Matrix{<:Real}`: Lower triangle matrix of Cholesky decomposition.
+
+    # Returns
+    A new `RandomFunction` instance.
+    """
+    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Union{Matrix{<:Real},Nothing})
+        new(μ, P, Σ, L)
+    end
+
     """
     Create a new `RandomFunction` instance.
 
@@ -46,37 +62,22 @@ mutable struct RandomFunction
     function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField; initialize::Bool=true)
         μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ = covariancematrix(P, process)
-        if initialize
-            L = collect(cholesky(Σ).L)
-        else
-            L = nothing
-        end
-        
-        return new(μ, P, Σ, L)
+        R = RandomFunction(μ, P, Σ, nothing)
+        initialize ? initialize!(R) : missing
+        return R
     end
 
-    """
-    Create a new `RandomFunction` instance with precomputed values.
-
-    # Arguments
-    - `μ::Vector{<:Real}`: Mean vector.
-    - `P::Vector{<:Point}`: Sample trace.
-    - `Σ::Symmetric{<:Real}`: Covariance matrix.
-    - `L::Matrix{<:Real}`: Lower triangle matrix of Cholesky decomposition.
-
-    # Returns
-    A new `RandomFunction` instance.
-    """
-    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Matrix{<:Real})
-        new(μ, P, Σ, L)
-    end
 end
 
 """
 Initialize the Cholesky decomposition of the covariance matrix of a random function.
 """
 function initialize!(R::RandomFunction)
-    R.L = collect(cholesky(R.Σ).L)
+    try
+        R.L = collect(cholesky(R.Σ).L)
+    catch
+        R.L = collect(cholesky(R.Σ, RowMaximum(), check=false).L)
+    end
 end
 
 """
@@ -123,18 +124,20 @@ The output random function is a tensor contraction from the input.
 # Arguments
 - `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
 - `c::Vector{Int}`: a vector of coefficients
+- `initialize::Bool=true`: whether to initialize the Cholesky decomposition of the covariance matrix
 
 # Returns
 - `RandomFunction`: a new random function composed by a linear combination of random processes
 """
-function CompositeRandomFunction(R::RandomFunction, c::Vector{Int})::RandomFunction
+function CompositeRandomFunction(R::RandomFunction, c::Vector{Int}; initialize::Bool=false)::RandomFunction
     n = length(c)
     N = size(R.Σ, 1)
     μ = sum(c .* meanpartition(R, n))
     Σ = Symmetric(sum((c * c') .* covariancepartition(R, n)))
     t = [(p[1],) for p in R.P[1:(N÷n)]]
-    L = collect(cholesky(Σ).L)
-    return RandomFunction(μ, t, Σ, L)
+    R = RandomFunction(μ, t, Σ, nothing)
+    initialize ? initialize!(R) : missing
+    return R
 end
 
 
@@ -174,7 +177,7 @@ function covariance(p₁::Point, p₂::Point, process::PinkLorentzianField)::Rea
     x₂ = p₂[2:end]
     γ = process.γ
     cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
-    cov_exp = exp(-process.κ*norm(x₁ .- x₂))
+    cov_exp = exp(-process.κ * norm(x₁ .- x₂))
     return process.σ^2 * cov_pink * cov_exp
 end
 
@@ -230,7 +233,7 @@ function characteristicfunction(R::RandomFunction; method::Symbol=:simpson)::Tup
     dt = R.P[2][1] - R.P[1][1]
     N = size(R.Σ, 1)
     @assert N % 2 == 1
-    χ(j::Int) = exp.(1im * integrate(view(R.μ, 1:j), dt, method=method)) * exp.(-integrate(view(R.Σ, 1:j, 1:j), dt, dt,method=method) / 2)
+    χ(j::Int) = exp.(1im * integrate(view(R.μ, 1:j), dt, method=method)) * exp.(-integrate(view(R.Σ, 1:j, 1:j), dt, dt, method=method) / 2)
     t = [p[1] for p in R.P[2:2:N-1]]
     f = [χ(j) for j in 3:2:N] # only for simpson's rule
     return (t, f)
@@ -243,7 +246,7 @@ Using Simpson's rule by default.
 """
 function characteristicvalue(R::RandomFunction; method::Symbol=:simpson)::Number
     dt = R.P[2][1] - R.P[1][1]
-    f1=exp.(1im * integrate(R.μ, dt, method=method))
-    f2=exp.(-integrate((@view R.Σ[:, :]), dt, dt, method=method) / 2)
-    return f1*f2
+    f1 = exp.(1im * integrate(R.μ, dt, method=method))
+    f2 = exp.(-integrate((@view R.Σ[:, :]), dt, dt, method=method) / 2)
+    return f1 * f2
 end
