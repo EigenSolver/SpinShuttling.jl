@@ -66,6 +66,10 @@ CompositeRandomFunction
 ```
 
 ```@docs
+restriction
+```
+
+```@docs
 initialize!
 ```
 
