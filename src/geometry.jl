@@ -1,7 +1,5 @@
 
-"""
-
-"""
+## One spin model
 function OneSpinTurnModel(T1::Real, T2::Real, v::Real, N::Int, B::GaussianRandomField)
     L1=v*T1; L2=v*T2;
     function x(t::Real)::Tuple{Real,Real}
@@ -58,4 +56,22 @@ end
 
 function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
     return OneSpinRectangleModel(T, L, L, N, B)
+end
+
+## Ancillary functions 
+
+X_seq_shuttle(n::Int, v::Real, d::Real) = [t->(v*t + (k-1)*d,0.0) for k in 1:n]
+X_prl_shuttle(n::Int, v::Real, d::Real) = [t->(v*t, (k-1)*d) for k in 1:n]
+
+function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real) 
+    function x(t::Real, v::Real, t1::Real, t2::Real)::Real
+        if t<t1
+            return 0
+        elseif t<t2
+            return v*(t-t1)
+        else
+            return v*(t2-t1)
+        end
+    end
+    return [t->x(t-(k-1)*τ,v,0,l/v)+(n-k)*d for k in 1:n]
 end

@@ -1,4 +1,5 @@
 using SpinShuttling: covariancepartition, Symmetric, Cholesky, ishermitian, issymmetric, integrate
+using SpinShuttling: X_seq_shuttle_delay
 using LsqFit
 using Statistics: std, mean
 
@@ -61,17 +62,6 @@ end
     ψ1=1/√6*[0im,2,-1,0,-1,0,0,0];
     lc=1/κₓ;
 
-    function x(t::Real, v::Real, t1::Real, t2::Real)::Real
-        if t<t1
-            return 0
-        elseif t<t2
-            return v*(t-t1)
-        else
-            return v*(t2-t1)
-        end
-    end
-    
-    X_seq_shuttle_delay(v::Real, τ::Real, l::Real, d::Real) = [t->x(t,v,0,l/v)+2d, t->x(t-τ,v,0,l/v)+d,t->x(t-2τ,v,0,l/v)]
     realistic_seq_shuttling(v::Real, τ::Real, l::Real, d::Real) = ShuttlingModel(3, ψ1, 2τ+l/v, N, B, X_seq_shuttle_delay(v, τ, l, d))
     model=realistic_seq_shuttling(v, lc/v, l, 0.000)
     
