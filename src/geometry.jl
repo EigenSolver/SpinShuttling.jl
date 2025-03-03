@@ -1,5 +1,18 @@
 
-## One spin model
+"""
+One spin model with a right angle turn trajectory
+
+# Arguments
+- `T1::Real`: time to reach the corner
+- `T2::Real`: time to reach the final position
+- `v::Real`: velocity
+- `N::Int`: number of time steps
+- `B::GaussianRandomField`: noise process
+
+# Returns
+- `OneSpinModel`: a one spin model
+
+"""
 function OneSpinTurnModel(T1::Real, T2::Real, v::Real, N::Int, B::GaussianRandomField)
     L1=v*T1; L2=v*T2;
     function x(t::Real)::Tuple{Real,Real}
@@ -19,7 +32,17 @@ function OneSpinTurnModel(T1::Real, T2::Real, v::Real, N::Int, B::GaussianRandom
 end
 
 """
-One spin shuttling with a square trace 
+One spin shuttling with a square trajectory
+
+# Arguments
+- `t::Real`: total time
+- `T::Real`: time to complete a square
+- `L::Real`: side length
+- `N::Int`: number of time steps
+- `B::GaussianRandomField`: noise process
+
+# Returns
+- `OneSpinModel`: a one spin model
 """
 function OneSpinRectangleModel(t::Real, T::Real, a::Real, b::Real, N::Int, B::GaussianRandomField)
 
@@ -58,9 +81,18 @@ function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
     return OneSpinRectangleModel(T, L, L, N, B)
 end
 
-## Ancillary functions 
+"""
 
+# Arguments
+- `n::Int`: number of shuttles
+- `v::Real`: velocity
+- `d::Real`: distance between spins 
+
+# Returns
+- `Vector{Function}`: a vector of functions
+"""
 X_seq_shuttle(n::Int, v::Real, d::Real) = [t->(v*t + (k-1)*d,0.0) for k in 1:n]
+
 X_prl_shuttle(n::Int, v::Real, d::Real) = [t->(v*t, (k-1)*d) for k in 1:n]
 
 function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real) 

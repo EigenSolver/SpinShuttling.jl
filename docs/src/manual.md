@@ -58,6 +58,10 @@ PinkLorentzianField
 ```
 
 ```@docs
+PinkPiField
+```
+
+```@docs
 RandomFunction
 ```
 

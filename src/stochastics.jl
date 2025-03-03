@@ -5,7 +5,7 @@ Point{N} = Tuple{Vararg{Real,N}}
 
 """
 Ornstein-Uhlenbeck field, the correlation function of which is 
-`σ^2 * exp(-|t₁ - t₂|/θ_t) * exp(-|x₁-x₂|/θ_x)` 
+`σ^2 * exp(-|t₁ - t₂|/θₜ) * exp(-|x₁-x₂|/θₓ)` 
 where `t` is time and `x` is position.
 """
 struct OrnsteinUhlenbeckField <: GaussianRandomField
@@ -17,7 +17,7 @@ end
 
 """
 Pink-Lorentzian Field, the correlation function of which is
-`σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-|x₁-x₂|/θ)`
+`σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-κ|x₁-x₂|)`
 where `expinti` is the exponential integral function.
 """
 struct PinkLorentzianField <: GaussianRandomField
@@ -27,7 +27,20 @@ struct PinkLorentzianField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
-mutable struct RandomFunction
+
+"""
+Pink-HeavisidePi Field, the correlation function of which is
+`σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * sinc(-κ|x₁-x₂|)`
+where `expinti` is the exponential integral function.
+"""
+struct PinkPiField <: GaussianRandomField
+    μ::Union{<:Real,Function}  # mean
+    κ::Real
+    σ::Real
+    γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
+end
+
+mutable struct RandomFunction 
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
@@ -176,9 +189,20 @@ function covariance(p₁::Point, p₂::Point, process::PinkLorentzianField)::Rea
     x₁ = p₁[2:end]
     x₂ = p₂[2:end]
     γ = process.γ
-    cov_pink = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
+    cov_log = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
     cov_exp = exp(-process.κ * norm(x₁ .- x₂))
-    return process.σ^2 * cov_pink * cov_exp
+    return process.σ^2 * cov_log * cov_exp
+end
+
+function covariance(p₁::Point, p₂::Point, process::PinkPiField)::Real
+    t₁ = p₁[1]
+    t₂ = p₂[1]
+    x₁ = p₁[2:end]
+    x₂ = p₂[2:end]
+    γ = process.γ
+    cov_log = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
+    cov_sinc = sinc(-process.κ * norm(x₁ .- x₂))
+    return process.σ^2 * cov_log * cov_sinc
 end
 
 """

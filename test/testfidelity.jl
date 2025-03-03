@@ -121,22 +121,22 @@ end
     println("TH:", f3)
 end
 
-##
-# @testset begin "test two spin parallel shuttling fidelity"
-#     L=10; σ =sqrt(2)/20; M=5000; N=501; T=200; κₜ=1/20; κₓ=1/0.1;
-#     D=0.3;
-#     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ,κₓ],σ)
-#     model=TwoSpinParallelModel(T, D, L, N, B)
-#     if visualize
-#         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
-#     end
-#     f1=statefidelity(model)
-#     f2, f2_err=sampling(model, statefidelity, M)
-#     w=exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
-#     f3=1/2*(1+w)
-#     @test isapprox(f1, f3,rtol=3e-2)
-#     @test isapprox(f2, f3, rtol=3e-2) 
-#     println("NI:", f1)
-#     println("MC:", f2)
-#     println("TH:", f3)
-# end
+
+@testset begin "test two spin parallel shuttling fidelity"
+    L=10; σ =sqrt(2)/20; M=5000; N=501; T=200; κₜ=1/20; κₓ=1/0.1;
+    D=0.3;
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ,κₓ],σ)
+    model=TwoSpinParallelModel(T, D, L, N, B)
+    if visualize
+        display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
+    end
+    f1=statefidelity(model)
+    f2, f2_err=sampling(model, statefidelity, M)
+    w=exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
+    f3=1/2*(1+w)
+    @test isapprox(f1, f3,rtol=3e-2)
+    @test isapprox(f2, f3, rtol=3e-2) 
+    println("NI:", f1)
+    println("MC:", f2)
+    println("TH:", f3)
+end

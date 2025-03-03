@@ -17,7 +17,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
     TwoSpinSequentialModel, TwoSpinParallelModel, 
     RandomFunction, CompositeRandomFunction,
-    OrnsteinUhlenbeckField, PinkLorentzianField
+    OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField
 export statefidelity, sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export dephasingmatrix, covariance, covariancematrix
 export W
