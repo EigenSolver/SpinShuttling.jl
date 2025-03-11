@@ -64,7 +64,6 @@ function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Noise Channel: $(model.B)")
     println(io, "Time Discretization: N=$(model.N)")
     println(io, "Process Time: T=$(model.T)")
-    println(io, "Shuttling Paths:")
 end
 
 """

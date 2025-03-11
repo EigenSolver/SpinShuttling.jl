@@ -78,7 +78,7 @@ function OneSpinSquareModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandom
 end
 
 function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
-    return OneSpinRectangleModel(T, L, L, N, B)
+    return OneSpinRectangleModel(T, T, L, N, B)
 end
 
 """
