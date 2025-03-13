@@ -81,6 +81,27 @@ function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
     return OneSpinRectangleModel(T, T, L, N, B)
 end
 
+
+function OneSpinTriangleModel(t::Real, T::Real, a::Real, N::Int, B::GaussianRandomField)
+    v = 3a/T
+    function x(t::Real)::Tuple{Real,Real}
+        t=mod(t, T)
+        if 0 ≤ t < T/3
+            return (v * t, 0.0)
+        elseif T/3 ≤ t < 2T/3
+            return (v*(T-t)/2, v*(t-T/3)*√3/2)
+        elseif 2T/3 ≤ t ≤ T
+            return (v*(T-t)/2, (v*(T-t))*√3/2)
+        else
+            return (0.0,0.0)
+        end
+    end
+
+    Ψ = 1 / √2 .* [1+0im,1+0im]
+
+    return OneSpinModel(Ψ, t, N, B, x)
+end
+
 """
 
 # Arguments
