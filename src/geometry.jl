@@ -105,26 +105,95 @@ end
 """
 
 # Arguments
-- `n::Int`: number of shuttles
+- `n::Int`: number of spins
 - `v::Real`: velocity
-- `d::Real`: distance between spins 
+- `d::Real`: distance between spins in the same channel
 
 # Returns
 - `Vector{Function}`: a vector of functions
 """
 X_seq_shuttle(n::Int, v::Real, d::Real) = [t->(v*t + (k-1)*d,0.0) for k in 1:n]
 
+
+"""
+
+# Arguments
+- `n::Int`: number of spins
+- `v::Real`: velocity
+- `d::Real`: distance between two parallel chennels 
+
+# Returns
+- `Vector{Function}`: a vector of functions
+"""
 X_prl_shuttle(n::Int, v::Real, d::Real) = [t->(v*t, (k-1)*d) for k in 1:n]
 
-function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real) 
-    function x(t::Real, v::Real, t1::Real, t2::Real)::Real
-        if t<t1
-            return 0
-        elseif t<t2
-            return v*(t-t1)
-        else
-            return v*(t2-t1)
-        end
+
+"""
+
+# Arguments
+- `t::Real`: time
+- `v::Real`: velocity
+- `t1::Real`: time to start moving
+- `t2::Real`: time to stop moving
+"""
+function X_padding(t::Real, v::Real, t1::Real, t2::Real)::Real
+    if t<t1
+        return 0
+    elseif t<t2
+        return v*(t-t1)
+    else
+        return v*(t2-t1)
     end
-    return [t->x(t-(k-1)*τ,v,0,l/v)+(n-k)*d for k in 1:n]
 end
+
+
+"""
+
+# Arguments
+- `n::Int`: number of spins
+- `v::Real`: velocity
+- `τ::Real`: time delay between two spins
+- `l::Real`: length of the channel
+- `d::Real`: initial distance between spins in the same channel
+
+# Returns
+- `Vector{Function}`: a vector of functions
+"""
+function X_seq_shuttle(n::Int, v::Real, τ::Real, l::Real, d::Real=0.0) 
+    return [t->X_padding(t-(k-1)*τ,v,0,l/v)+(n-k)*d for k in 1:n]
+end
+
+
+"""
+
+# Arguments
+- `v::Real`: velocity
+- `d1::Real`: distance between the spins in the first channel
+- `d2::Real`: distance between the parallel channel
+
+# Returns
+- `Vector{Function}`: a vector of functions, only for 3 spins
+"""
+function X_tri_shuttle(v::Real,d1::Real,d2::Real)
+    return [t->(v*t,0.0),t->(d1+v*t,0.0),t->(v*t,d2)]
+end
+
+
+"""
+
+# Arguments
+- `v::Real`: velocity
+- `τ::Real`: time delay between two spins
+- `l::Real`: length of the channel
+- `d::Real`: distance between parallel channels
+
+# Returns
+- `Vector{Function}`: a vector of functions, only for 3 spins
+"""
+function X_tri_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
+    x1=t->(X_padding(t, v, 0, l/v),0.0) 
+    x2=t->(X_padding(t, v, τ, l/v+τ),0.0)
+    x3=t->(X_padding(t, v, 0, l/v), d)
+    return [x1,x2,x3]
+end
+
