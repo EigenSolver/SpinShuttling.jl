@@ -19,7 +19,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
     RandomFunction, CompositeRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField
 export statefidelity, sampling, restriction, initialize!, characteristicfunction, characteristicvalue
-export dephasingmatrix, covariance, covariancematrix
+export dephasingmatrix, dephasingfactor, covariance, covariancematrix
 export W
 
 """
@@ -171,6 +171,7 @@ The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
 
 # Arguments
+- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
 - `T₀::Real`: Delay time
 - `T₁::Real`: Shuttling time
 - `L::Real`: Length of the path
@@ -182,7 +183,7 @@ It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(
 model = TwoSpinSequentialModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
-function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+function TwoSpinSequentialModel(Ψ::Vector{<:Complex}, T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     function x₁(t::Real)::Real
         if t < 0
             return 0
@@ -203,9 +204,12 @@ function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::Gaus
             return L + δ
         end
     end
-    Ψ = 1 / √2 .* [0, 1+0im, -1+0im, 0]
     T = T₀ + T₁
     return TwoSpinModel(Ψ, T, N, B, x₁, x₂; initialize=initialize)
+end
+
+function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+    return TwoSpinSequentialModel( 1 / √2 .* [0, 1+0im, -1+0im, 0], T₀, T₁, L, N, B; initialize=initialize)
 end
 
 """
@@ -215,6 +219,7 @@ The qubits are shuttled at constant velocity along the 2D path
 The total shuttling time is `T` and the length of the path is `L` in `μm`.
 
 # Arguments
+- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
 - `T::Real`: Total time
 - `D::Real`: Distance between the two qubits
 - `L::Real`: Length of the path
@@ -226,14 +231,16 @@ The total shuttling time is `T` and the length of the path is `L` in `μm`.
 model = TwoSpinParallelModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
-function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int,
+function TwoSpinParallelModel(Ψ::Vector{<:Complex}, T::Real, D::Real, L::Real, N::Int,
     B::GaussianRandomField; initialize::Bool=true)
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
-    Ψ = 1 / √2 .* [0.0, 1+0im, -1+0im, 0.0]
     return TwoSpinModel(Ψ, T, N, B, x₁, x₂, initialize=initialize)
 end
 
+function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+    return TwoSpinParallelModel(1 / √2 .* [0, 1+0im, -1+0im, 0], T, D, L, N, B; initialize=initialize)
+end
 
 """
 

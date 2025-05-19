@@ -36,6 +36,10 @@ dephasingmatrix
 ```
 
 ```@docs
+dephasingfactor
+```
+
+```@docs
 sampling
 ```
 

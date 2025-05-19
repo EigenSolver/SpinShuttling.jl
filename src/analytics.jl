@@ -1,3 +1,5 @@
+# should be removed from the package
+
 function C1(β::Real, γ::Real, τ::Real)::Real
     if β <= τ
         return ℯ^(-β - γ - τ) * (1 + ℯ^(2β) - 2ℯ^τ + 2ℯ^(β + τ) * (-β + τ))
