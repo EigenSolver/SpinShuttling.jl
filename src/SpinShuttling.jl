@@ -11,15 +11,16 @@ include("analytics.jl")
 include("stochastics.jl")
 include("geometry.jl")
 include("sampling.jl")
-
+include("measures.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
     TwoSpinSequentialModel, TwoSpinParallelModel, 
     RandomFunction, CompositeRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField
-export statefidelity, sampling, restriction, initialize!, characteristicfunction, characteristicvalue
-export dephasingmatrix, dephasingfactor, covariance, covariancematrix
+export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
+export statefidelity, dephasingmatrix, dephasingfactor,
+export covariance, covariancematrix, concurrence
 export W
 
 """

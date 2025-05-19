@@ -39,12 +39,17 @@ dephasingmatrix
 dephasingfactor
 ```
 
+
 ```@docs
 sampling
 ```
 
 ```@docs
 statefidelity
+```
+
+```@docs
+concurrence
 ```
 
 ```@docs
