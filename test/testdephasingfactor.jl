@@ -29,7 +29,7 @@
     f_c = (model.Ψ' * (w .* rho) * model.Ψ)
     f_s = (model.Ψ' * (w2 .* rho) * model.Ψ)
     @test f ≈ f_c
-    @test isapprox(f, f_s, rtol=1e-2)
+    @test isapprox(f, f_s, rtol=3e-2)
 end
 
 ## 

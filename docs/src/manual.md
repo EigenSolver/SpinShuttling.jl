@@ -39,7 +39,6 @@ dephasingmatrix
 dephasingfactor
 ```
 
-
 ```@docs
 sampling
 ```
