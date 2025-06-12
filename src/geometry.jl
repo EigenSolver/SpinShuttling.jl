@@ -197,3 +197,12 @@ function X_tri_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     return [x1,x2,x3]
 end
 
+function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
+    x1=t->(X_padding(t, v, 0, l/v),0.0) 
+    x2=t->(X_padding(t, v, τ, l/v+τ),0.0)
+    x3=t->(X_padding(t, v, 0, l/v), d)
+    x4=t->(X_padding(t, v, 0, l/v+τ), d)
+    return [x1,x2,x3,x4]
+end
+
+
