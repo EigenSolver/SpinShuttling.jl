@@ -1,9 +1,3 @@
-# -------------------------------------------------------------
-# A lightweight Julia implementation of the Wootters concurrence
-# for an arbitrary two‑qubit (4×4) density matrix.
-# -------------------------------------------------------------
-
-
 """
     concurrence(ρ) -> Float64
 
@@ -50,3 +44,39 @@ end
 # ρ = ψ * ψ'                      # density matrix
 # concurrence(ρ)  # → 1.0
 # -------------------------------------------------------------
+
+"""
+    vonneumannentropy(ρ::AbstractMatrix{<:Number})::Float64
+    
+Compute the **von Neumann entropy** of a quantum state represented by a density matrix `ρ`.
+# Arguments
+- `ρ::AbstractMatrix{<:Number}`: Hermitian, positive-semidefinite
+    matrix representing the quantum state.
+# Returns
+- `Float64`: The von Neumann entropy, a non-negative real number.
+
+"""
+function vonneumannentropy(ρ::AbstractMatrix{<:Number})::Float64
+    @assert ishermitian(ρ) "ρ must be Hermitian"
+    λ = real.(eigvals(ρ))
+    λ = clamp.(λ, 0, Inf)  # clip negative numerical noise
+    return -sum(λ .* log.(λ .+ eps()))  # add eps to avoid log(0)
+end
+
+
+"""
+returns the process fidelity of a quantum channel defined by a transfer matrix `Λ` and a target process `S`.
+
+# Arguments
+- `Λ::Matrix{<:Number}`: Transfer matrix of the quantum channel.
+- `S::Matrix{<:Number}`: Target process matrix.
+- `d::Int=0`: Dimension of the Hilbert space. If `d`
+is `0`, it is inferred from the size of `Λ`.
+# Returns
+- `Float64`: The process fidelity, a real number in the closed interval **[0
+"""
+function processfidelity(Λ::Matrix{<:Number}, S::Matrix{<:Number}; d::Int=0)
+    @assert size(Λ) == size(S)
+    d2= size(Λ, 1)
+    return real(tr(Λ' * S))/d2
+end
