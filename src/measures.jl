@@ -77,6 +77,6 @@ is `0`, it is inferred from the size of `Λ`.
 """
 function processfidelity(Λ::Matrix{<:Number}, S::Matrix{<:Number}; d::Int=0)
     @assert size(Λ) == size(S)
-    d2= size(Λ, 1)
+    d2 = d==0 ? size(Λ, 1) : d^2
     return real(tr(Λ' * S))/d2
 end

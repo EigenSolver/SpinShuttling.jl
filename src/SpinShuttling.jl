@@ -12,6 +12,8 @@ include("stochastics.jl")
 include("geometry.jl")
 include("sampling.jl")
 include("measures.jl")
+include("tomography.jl")
+include("quantumorocess.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
@@ -21,6 +23,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor
 export covariance, covariancematrix, concurrence
+export processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
 export W
 
