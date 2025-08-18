@@ -21,6 +21,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor
 export covariance, covariancematrix, concurrence
+export paulitransfermatrix, processtomography
 export W
 
 """
