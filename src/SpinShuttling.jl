@@ -12,6 +12,8 @@ include("stochastics.jl")
 include("geometry.jl")
 include("sampling.jl")
 include("measures.jl")
+include("tomography.jl")
+include("quantumprocess.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
@@ -21,8 +23,10 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor
 export covariance, covariancematrix, concurrence
+export processfidelity, concurrence, vonneumannentropy
+export paulitransfermatrix, processtomography
 export W
-
+export MixingUnitaryChannel, KrausOps 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
 specified by the paths of the shuttled spins.
