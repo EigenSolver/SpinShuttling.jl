@@ -13,7 +13,7 @@ include("geometry.jl")
 include("sampling.jl")
 include("measures.jl")
 include("tomography.jl")
-include("quantumorocess.jl")
+include("quantumprocess.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
