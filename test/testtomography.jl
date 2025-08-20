@@ -27,7 +27,7 @@ using Test
     U2s = [kron(a,b) for a in Us for b in Us]
     P2s = zeros(length(U2s))
     P2s[1]=1-p
-    P2s[2]=p
+    P2s[2:end].=p/15
     KO2 = KrausOps(MixingUnitaryChannel(U2s,P2s))
 
     # Compute the Pauli transfer matrix
