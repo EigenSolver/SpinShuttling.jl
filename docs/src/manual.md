@@ -43,12 +43,40 @@ dephasingfactor
 sampling
 ```
 
+### Quantum Process
+
+```@docs
+MixingUnitaryChannel
+```
+
+```@docs
+processtomography
+```
+
+```@docs
+paulitransfermatrix
+```
+
+```@docs
+KrausOps
+```
+
+### Quantum Measures
+
 ```@docs
 statefidelity
 ```
 
 ```@docs
 concurrence
+```
+
+```@docs
+vonneumannentropy
+```
+
+```@docs
+processfidelity
 ```
 
 ```@docs
