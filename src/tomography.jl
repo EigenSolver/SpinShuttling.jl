@@ -2,7 +2,7 @@ using Base.Iterators
 σx = [0 1; 1 0]
 σy = [0 -im; im 0]
 σz = [1 0; 0 -1]
-σi = [1 0; 0 1]
+σI = [1 0; 0 1]
 
 """
 paulitransfermatrix(KrausOps::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
@@ -16,14 +16,19 @@ Compute the **Pauli transfer matrix** for a set of Kraus operators.
 """
 function paulitransfermatrix(KrausOps::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
     M=length(KrausOps)
-    @assert log(4, N) % 1 ==0
+    @assert log(4, M) % 1 ==0
     d = size(KrausOps[1])[1] # dimension of the basis
     n = Int(log(2,d))
     pauli_basis=[σI, σx, σy, σz]
 
     n_pauli_basis = Vector{Matrix{Complex{Float64}}}(undef, 4^n)
     for (j,tpl) in enumerate(product(ntuple(_ -> pauli_basis, n)...))
-        n_pauli_basis[j]=kron(tpl...)
+        #If 1 qubit, kron not needed
+        if n==1
+            n_pauli_basis[j]=tpl[1]
+        else
+            n_pauli_basis[j]=kron(tpl...)
+        end
     end
 
     return processtomography(KrausOps, n_pauli_basis; normalized=normalized)
