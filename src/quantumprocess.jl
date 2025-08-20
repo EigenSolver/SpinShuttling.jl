@@ -26,6 +26,7 @@ Convert a `MixingUnitaryChannel` to its Kraus operators.
 function KrausOps(channel::MixingUnitaryChannel)
     M = length(channel.Us)
     @assert length(channel.Ps) == M
+    @assert isapprox(sum(channel.Ps),1) ### Assert that mixing probabilities sum to 1
     KrausOps = Vector{Matrix{Complex{Float64}}}(undef, M)
     for i in 1:M
         KrausOps[i] = sqrt(channel.Ps[i]) * channel.Us[i]
