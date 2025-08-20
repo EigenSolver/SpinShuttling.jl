@@ -7,7 +7,7 @@ A quantum process that applies a set of unitary operations with given probabilit
 # Fields
 - `Us::Vector{Matrix{Complex{Float64}}}`: Vector of unitary
     matrices, each of size `2^n × 2^n` for `n` qubits.
-- `Ps::Vector{Float64}`: Vector of mixing probabilities, which sum to
+- `Ps::Vector{Float64}`: Vector of mixing probabilities, which sum to 1
 
 """
 struct MixingUnitaryChannel <: QuantumProcess
