@@ -12,7 +12,7 @@ visualize=true
     t=range(0, T, N)
     P=collect(zip(t, v.*t))
     B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
-    R=RandomFunction(P , B, initialize=false)
+    R=GaussianRandomFunction(P , B, initialize=false)
     initialize!(R)
     @test R() isa Vector{<:Real}
     @test R.Σ isa Symmetric
@@ -32,7 +32,7 @@ visualize=true
     @test transpose(crosscov) == covariancematrix(P2, P1, B)
 
     P_comp=vcat(P1,P2)
-    R=RandomFunction(P_comp,B)
+    R=GaussianRandomFunction(P_comp,B)
     c=[1,1]
     RΣ=sum(c'*c .* covariancepartition(R, 2))
     @test size(RΣ) == (N,N)
@@ -40,7 +40,7 @@ visualize=true
     @test issymmetric(RΣ)
     @test ishermitian(RΣ)
 
-    RC=CompositeRandomFunction(R, c)
+    RC=CompositeGaussianRandomFunction(R, c)
     if visualize
         display(heatmap(sqrt.(RΣ)))
     end
@@ -82,7 +82,7 @@ end
     for T in range(1, 50, length=M)
         t=range(0, T, N)
         P=collect(zip(t, v.*t))
-        R=RandomFunction(P , B)
+        R=GaussianRandomFunction(P , B)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f2=exp(-integrate(R.Σ[:,:], dt, dt, method=:simpson)/2)
@@ -120,7 +120,7 @@ end
     for T in T_range
         t=range(0, T, N)
         P=collect(zip(t, v.*t))
-        R=RandomFunction(P , B)
+        R=GaussianRandomFunction(P , B)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f1_sym=exp(-integrate(R.Σ, dt)/2)

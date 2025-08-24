@@ -3,7 +3,7 @@
 ```
 function compositedephasing(model::ShuttlingModel, c::Vector{Int})::Real
     # @assert length(c) == model.n
-    R = CompositeRandomFunction(model.R, c)
+    R = CompositeGaussianRandomFunction(model.R, c)
     return characteristicvalue(R, method=:trapezoid)
 end
 

@@ -1,5 +1,10 @@
 abstract type RandomField end
-abstract type GaussianRandomField <: RandomField end # n-dimensional
+abstract type GaussianRandomField <: RandomField end 
+abstract type PoissonRandomField <: RandomField end 
+
+abstract type RandomVectorField end
+abstract type GaussianRandomVectorField <: RandomVectorField end
+
 
 Point{N} = Tuple{Vararg{Real,N}}
 
@@ -40,13 +45,13 @@ struct PinkPiField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
-mutable struct RandomFunction 
+mutable struct GaussianRandomFunction 
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
     L::Union{Matrix{<:Real},Nothing} # Lower triangle matrix of Cholesky decomposition
     """
-    Create a new `RandomFunction` instance with precomputed values.
+    Create a new `GaussianRandomFunction` instance with precomputed values.
 
     # Arguments
     - `μ::Vector{<:Real}`: Mean vector.
@@ -55,14 +60,14 @@ mutable struct RandomFunction
     - `L::Matrix{<:Real}`: Lower triangle matrix of Cholesky decomposition.
 
     # Returns
-    A new `RandomFunction` instance.
+    A new `GaussianRandomFunction` instance.
     """
-    function RandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Union{Matrix{<:Real},Nothing})
+    function GaussianRandomFunction(μ::Vector{<:Real}, P::Vector{<:Point}, Σ::Symmetric{<:Real}, L::Union{Matrix{<:Real},Nothing})
         new(μ, P, Σ, L)
     end
 
     """
-    Create a new `RandomFunction` instance.
+    Create a new `GaussianRandomFunction` instance.
 
     # Arguments
     - `P::Vector{<:Point}`: Sample trace.
@@ -70,12 +75,12 @@ mutable struct RandomFunction
     - `initialize::Bool=true`: Whether to initialize the Cholesky decomposition of the covariance matrix.
 
     # Returns
-    A new `RandomFunction` instance.
+    A new `GaussianRandomFunction` instance.
     """
-    function RandomFunction(P::Vector{<:Point}, process::GaussianRandomField; initialize::Bool=true)
+    function GaussianRandomFunction(P::Vector{<:Point}, process::GaussianRandomField; initialize::Bool=true)
         μ = process.μ isa Function ? process.μ(P) : repeat([process.μ], length(P))
         Σ = covariancematrix(P, process)
-        R = RandomFunction(μ, P, Σ, nothing)
+        R = GaussianRandomFunction(μ, P, Σ, nothing)
         initialize ? initialize!(R) : missing
         return R
     end
@@ -85,7 +90,7 @@ end
 """
 Initialize the Cholesky decomposition of the covariance matrix of a random function.
 """
-function initialize!(R::RandomFunction)
+function initialize!(R::GaussianRandomFunction)
     try
         R.L = collect(cholesky(R.Σ).L)
     catch
@@ -97,13 +102,13 @@ end
 Divide the covariance matrix of a direct summed random function into partitions. 
 
 # Arguments
-- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `R::GaussianRandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
 - `n::Int`: number of partitions or spins
 
 # Returns
 - `Matrix{Matrix{<:Real}}`: a matrix of covariance matrices
 """
-function covariancepartition(R::RandomFunction, n::Int)::Matrix{Matrix{<:Real}}
+function covariancepartition(R::GaussianRandomFunction, n::Int)::Matrix{Matrix{<:Real}}
     Λ = Matrix{Matrix{<:Real}}(undef, n, n)
     N = length(R.P) ÷ n
     Σ(i::Int, j::Int) = R.Σ[(i-1)*N+1:i*N, (j-1)*N+1:j*N]
@@ -118,13 +123,13 @@ end
 """
 
 # Arguments
-- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `R::GaussianRandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
 - `n::Int`: number of partitions or spins
 
 # Returns
 - `Vector{Vector{<:Real}}`: a vector of mean vectors
 """
-function meanpartition(R::RandomFunction, n::Int)::Vector{Vector{<:Real}}
+function meanpartition(R::GaussianRandomFunction, n::Int)::Vector{Vector{<:Real}}
     N = length(R.P) ÷ n
     return [R.μ[(i-1)*N+1:i*N] for i in 1:n]
 end
@@ -135,27 +140,27 @@ The input random function represents the direct sum of these processes.
 The output random function is a tensor contraction from the input.
 
 # Arguments
-- `R::RandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
+- `R::GaussianRandomFunction`: a direct sum of random processes R₁⊕ R₂⊕ ... ⊕ Rₙ
 - `c::Vector{Int}`: a vector of coefficients
 - `initialize::Bool=true`: whether to initialize the Cholesky decomposition of the covariance matrix
 
 # Returns
-- `RandomFunction`: a new random function composed by a linear combination of random processes
+- `GaussianRandomFunction`: a new random function composed by a linear combination of random processes
 """
-function CompositeRandomFunction(R::RandomFunction, c::Vector{Int}; initialize::Bool=false)::RandomFunction
+function CompositeGaussianRandomFunction(R::GaussianRandomFunction, c::Vector{Int}; initialize::Bool=false)::GaussianRandomFunction
     n = length(c)
     N = size(R.Σ, 1)
     μ = sum(c .* meanpartition(R, n))
     Σ = Symmetric(sum((c * c') .* covariancepartition(R, n)))
     t = [(p[1],) for p in R.P[1:(N÷n)]]
-    R = RandomFunction(μ, t, Σ, nothing)
+    R = GaussianRandomFunction(μ, t, Σ, nothing)
     initialize ? initialize!(R) : missing
     return R
 end
 
 
-function CompositeRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::RandomFunction
-    return CompositeRandomFunction(RandomFunction(P, process), c)
+function CompositeGaussianRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::GaussianRandomFunction
+    return CompositeGaussianRandomFunction(GaussianRandomFunction(P, process), c)
 end
 
 """
@@ -164,11 +169,11 @@ Generate a random time series from a Gaussian random field.
 `R()` generates a random time series from a Gaussian random field `R`
 `R(randseq)` generates a random time series from a Gaussian random field `R` with a given random sequence `randseq`.
 """
-function (R::RandomFunction)(randseq::Vector{<:Real})
+function (R::GaussianRandomFunction)(randseq::Vector{<:Real})
     return R.μ .+ R.L * randseq
 end
 
-(R::RandomFunction)() = R(randn(size(R.Σ, 1)))
+(R::GaussianRandomFunction)() = R(randn(size(R.Σ, 1)))
 
 
 """
@@ -252,7 +257,7 @@ Compute the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicfunction(R::RandomFunction; method::Symbol=:simpson)::Tuple{Vector{<:Real},Vector{<:Number}}
+function characteristicfunction(R::GaussianRandomFunction; method::Symbol=:simpson)::Tuple{Vector{<:Real},Vector{<:Number}}
     # need further optimization
     dt = R.P[2][1] - R.P[1][1]
     N = size(R.Σ, 1)
@@ -268,7 +273,7 @@ Compute the final phase of the characteristic functional of the process from the
 numerical quadrature of the covariance matrix.
 Using Simpson's rule by default.
 """
-function characteristicvalue(R::RandomFunction; method::Symbol=:simpson)::Number
+function characteristicvalue(R::GaussianRandomFunction; method::Symbol=:simpson)::Number
     dt = R.P[2][1] - R.P[1][1]
     f1 = exp.(1im * integrate(R.μ, dt, method=method))
     f2 = exp.(-integrate((@view R.Σ[:, :]), dt, dt, method=method) / 2)

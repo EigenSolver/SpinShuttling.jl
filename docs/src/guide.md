@@ -48,7 +48,7 @@ P=collect(zip(t, v.*t));
 ```
 A Gaussian random process (random function) can be obtained by projecting the Gaussian random field along the time-space array `P`. Then, we can use `R()` to invoke the process and generate a random time series.
 ```@example quickstart
-R=RandomFunction(P, B) 
+R=GaussianRandomFunction(P, B) 
 plot(t, R(), xlabel="t", ylabel="B(t)", size=(400,300)) 
 ```
 

@@ -18,7 +18,7 @@ include("quantumprocess.jl")
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
     TwoSpinSequentialModel, TwoSpinParallelModel, 
-    RandomFunction, CompositeRandomFunction,
+    GaussianRandomFunction, CompositeGaussianRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor
@@ -41,7 +41,7 @@ specified by the paths of the shuttled spins.
 - `initialize::Bool`: Initialize the random function
 
 # Fields
-- `R::RandomFunction`: Random function defined by the noise field and the paths
+- `R::GaussianRandomFunction`: Random function defined by the noise field and the paths
 
 # Example
 ```julia
@@ -55,12 +55,28 @@ struct ShuttlingModel
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
     X::Vector{<:Function}
-    R::RandomFunction
+    R::GaussianRandomFunction
     function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Vector{<:Function}; initialize::Bool=true)
         R = restriction(X, range(0, T, N), B; initialize=initialize)
         new(n, Ψ, T, N, B, X, R)
     end
 end
+
+# struct BlochShuttlingModel
+#     n::Int # number of spins
+#     Ψ::Vector{<:Complex}
+#     T::Real # time 
+#     N::Int # Time discretization 
+#     Bx::GaussianRandomField
+#     By::GaussianRandomField
+#     Bz::GaussianRandomField
+#     X::Vector{<:Function}
+#     R::GaussianRandomFunction
+#     function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::Vector{<:Function}; initialize::Bool=true)
+#         R = restriction(X, range(0, T, N), B; initialize=initialize)
+#         new(n, Ψ, T, N, B, X, R)
+#     end
+# end
 
 function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Model for spin shuttling")
@@ -319,7 +335,7 @@ function dephasingfactor(model::ShuttlingModel, c::Vector{Int}; method::Symbol=:
         end
         return exp.(-sum((c * c').*M)/2)
     else
-        R = CompositeRandomFunction(model.R, c, initialize=false)
+        R = CompositeGaussianRandomFunction(model.R, c, initialize=false)
         return characteristicvalue(R, method=method)
     end
 end
@@ -438,13 +454,13 @@ Restrict the random field along a parameteized curve.
 - `initialize::Bool`: initialize the random function
 
 # Returns
-- `RandomFunction`: a new random function restricted along the curve
+- `GaussianRandomFunction`: a new random function restricted along the curve
 
 """
-function restriction(X::Vector{<:Function},t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::RandomFunction 
+function restriction(X::Vector{<:Function},t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::GaussianRandomFunction 
     f(x::Function, t::Real) = (t, x(t)...)
     P = vcat([f.(x, t) for x in X]...)
-    return RandomFunction(P, B, initialize=initialize)
+    return GaussianRandomFunction(P, B, initialize=initialize)
 end
 
 """

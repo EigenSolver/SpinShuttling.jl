@@ -98,11 +98,11 @@ PinkPiField
 ```
 
 ```@docs
-RandomFunction
+GaussianRandomFunction
 ```
 
 ```@docs
-CompositeRandomFunction
+CompositeGaussianRandomFunction
 ```
 
 ```@docs
