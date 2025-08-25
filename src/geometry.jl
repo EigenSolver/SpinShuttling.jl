@@ -178,6 +178,10 @@ function X_tri_shuttle(v::Real,d1::Real,d2::Real)
     return [t->(v*t,0.0),t->(d1+v*t,0.0),t->(v*t,d2)]
 end
 
+function X_square_shuttle(v::Real,d1::Real,d2::Real)
+    return [t->(v*t,0.0),t->(d1+v*t,0.0),t->(d1+v*t,d2),t->(v*t,d2)]
+end
+
 
 """
 
@@ -197,6 +201,17 @@ function X_tri_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     return [x1,x2,x3]
 end
 
+"""
+
+# Arguments
+- `v::Real`: velocity
+- `τ::Real`: time delay between two spins
+- `l::Real`: length of the channel
+- `d::Real`: distance between parallel channels
+
+# Returns
+- `Vector{Function}`: a vector of functions, only for 4 spins
+"""
 function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     x1=t->(X_padding(t, v, 0, l/v),0.0) 
     x2=t->(X_padding(t, v, τ, l/v+τ),0.0)
@@ -204,5 +219,6 @@ function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     x4=t->(X_padding(t, v, 0, l/v+τ), d)
     return [x1,x2,x3,x4]
 end
+
 
 
