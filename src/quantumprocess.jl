@@ -16,22 +16,22 @@ struct MixingUnitaryChannel <: QuantumProcess
 end
 
 """
-KrausOps(channel::MixingUnitaryChannel)::Vector{Matrix{Complex{Float64}}}
+krausops(channel::MixingUnitaryChannel)::Vector{Matrix{Complex{Float64}}}
 Convert a `MixingUnitaryChannel` to its Kraus operators.
 # Arguments
 - `channel::MixingUnitaryChannel`: The mixing unitary channel.
 # Returns
 - `Vector{Matrix{Complex{Float64}}}`: Vector of Kraus operators,
 """
-function KrausOps(channel::MixingUnitaryChannel)
+function krausops(channel::MixingUnitaryChannel)
     M = length(channel.Us)
     @assert length(channel.Ps) == M
     @assert isapprox(sum(channel.Ps),1) ### Assert that mixing probabilities sum to 1
-    KrausOps = Vector{Matrix{Complex{Float64}}}(undef, M)
+    krausops = Vector{Matrix{Complex{Float64}}}(undef, M)
     for i in 1:M
-        KrausOps[i] = sqrt(channel.Ps[i]) * channel.Us[i]
+        krausops[i] = sqrt(channel.Ps[i]) * channel.Us[i]
     end
-    return KrausOps
+    return krausops
 end
 
 """
@@ -66,7 +66,7 @@ a target process `S`.
 - `Float64`: The process fidelity, a real number in the closed interval **[0
 """
 function processfidelity(E::MixingUnitaryChannel, S::Matrix{<:Number}; d::Int=0)
-    KrausOps = KrausOps(E)
-    Λ = paulitransfermatrix(KrausOps; normalized=true)
+    krausops = krausops(E)
+    Λ = paulitransfermatrix(krausops; normalized=true)
     return processfidelity(Λ, S; d=d)
 end
