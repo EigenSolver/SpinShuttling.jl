@@ -473,8 +473,8 @@ Analytical dephasing factor of a one-spin shuttling model.
 - `path::Symbol`: Path of the shuttling model, `:straight` or `:forthback`
 """
 function W(T::Real, L::Real, B::OrnsteinUhlenbeckField; path=:straight)::Real
-    κₜ = B.θ[1]
-    κₓ = B.θ[2]
+    κₜ = B.κ[1]
+    κₓ = B.κ[2]
     σ = B.σ
     β = κₜ * T
     γ = κₓ * L
@@ -505,8 +505,8 @@ end
 Analytical dephasing factor of a sequenced two-spin EPR pair shuttling model.
 """
 function W(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField; path=:sequenced)::Real
-    κₜ = B.θ[1]
-    κₓ = B.θ[2]
+    κₜ = B.κ[1]
+    κₓ = B.κ[2]
     σ = B.σ
     τ = κₜ * T0
     β = κₜ * T1

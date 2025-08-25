@@ -58,21 +58,22 @@ struct PinkGaussianField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
-"""
-Alvarez, et al 2012.
+# """
+# Alvarez, et al 2012.
 
-Separable Multivariate Gaussian Random Field, the correlation function of which is
+# Separable Multivariate Gaussian Random Field, the correlation function of which is
 
-"""
-struct SeparableMultivariateGaussianRandomField{N} <: MultivariateGaussianRandomField
-    B::NTuple{N,<:GaussianRandomField}
-    ρ::Matrix{<:Real}
+# """
+# struct SeparableMultivariateGaussianRandomField{N} <: MultivariateGaussianRandomField
+#     σ::NTuple{N,Real}
+#     ρ::Matrix{<:Real} # correlation matrix
+#     kernel::Function # kernel function
 
-    function SeparableMultivariateGaussianRandomField(B::NTuple{N,GaussianRandomField}, ρ::Matrix{<:Real}) where {N}
-        size(ρ) == (N, N) || throw(ArgumentError("Correlation matrix ρ must be $N×$N. Got size $(size(ρ))"))
-        new{N}(B, ρ)
-    end
-end
+#     function SeparableMultivariateGaussianRandomField(B::NTuple{N,GaussianRandomField}, ρ::Matrix{<:Real}) where {N}
+#         size(ρ) == (N, N) || throw(ArgumentError("Correlation matrix ρ must be $N×$N. Got size $(size(ρ))"))
+#         new{N}(B, ρ)
+#     end
+# end
 
 
 """
@@ -81,12 +82,13 @@ Gardiner, et al, Handbook of Stochastic Methods, 2004.
 
 """
 struct MultivariateOrnsteinUhlenbeckField{N} <: MultivariateGaussianRandomField
-    μ::Union{Vector{<:Real},Function} # mean
-    κ::Vector{<:Real}
-    σ::Matrix{<:Real} # covariance
-    function MultivariateOrnsteinUhlenbeckField(μ::Union{Vector{<:Real},Function}, κ::Vector{<:Real}, σ::Matrix{<:Real}) where {N}
-        size(σ, 1) == N || throw(ArgumentError("Covariance matrix σ must be $N×$N. Got size $(size(σ))"))
-        new{N}(μ, θ, σ)
+    A::Matrix{<:Real} # mean
+    B::Matrix{<:Real} # drift matrix
+    
+    function MultivariateOrnsteinUhlenbeckField(A::Matrix{<:Real}, B::Matrix{<:Real}) where {N}
+        size(A, 1) == N || throw(ArgumentError("Mean matrix A must be $N×$N. Got size $(size(A))"))
+        size(A) == size(B) || throw(ArgumentError("Mean matrix A and drift matrix B must be the same size. Got sizes $(size(A)) and $(size(B))"))
+        new{N}(A, B)
     end
 end
 
@@ -319,12 +321,6 @@ function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, GRF::Gau
     return A
 end
 
-function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, MGRF::MultivariateGaussianRandomField)::Matrix{Real}
-    @assert length(P₁) == length(P₂)
-    N = length(P₁)
-
-end
-
 """
 Auto-Covariance matrix of a Gaussian random field.
 # Arguments
@@ -345,6 +341,11 @@ function covariancematrix(P::Vector{<:Point}, GRF::GaussianRandomField)::Symmetr
     end
     return Symmetric(A)
 end
+
+
+# function covariancematrix(P::Vector{<:Point}, MOUF::MultivariateOrnsteinUhlenbeckField{N}) where {N}::Matrix{Real}
+#     @assert length(P) % N == 0
+# end
 
 """
 Compute the characteristic functional of the process from the 
