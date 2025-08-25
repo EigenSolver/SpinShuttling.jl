@@ -58,7 +58,7 @@ paulitransfermatrix
 ```
 
 ```@docs
-KrausOps
+krausops
 ```
 
 ### Quantum Measures

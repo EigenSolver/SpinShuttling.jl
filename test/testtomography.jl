@@ -12,7 +12,7 @@ using Test
     p=0.5 
     Us = [σI, σx, σy, σz]
     Ps = [1-p, p/3, p/3, p/3]
-    KO = KrausOps(MixingUnitaryChannel(Us,Ps))
+    KO = krausops(MixingUnitaryChannel(Us,Ps))
     
     # Compute the Pauli transfer matrix
     PTM = paulitransfermatrix(KO)
@@ -28,7 +28,7 @@ using Test
     P2s = zeros(length(U2s))
     P2s[1]=1-p
     P2s[2:end].=p/15
-    KO2 = KrausOps(MixingUnitaryChannel(U2s,P2s))
+    KO2 = krausops(MixingUnitaryChannel(U2s,P2s))
 
     # Compute the Pauli transfer matrix
     PTM2 = paulitransfermatrix(KO2)
