@@ -17,16 +17,16 @@ include("quantumprocess.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel, 
-    TwoSpinSequentialModel, TwoSpinParallelModel, 
-    GaussianRandomFunction, CompositeGaussianRandomFunction,
-    OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField
+    TwoSpinSequentialModel, TwoSpinParallelModel
+export GaussianRandomField, GaussianRandomFunction, CompositeGaussianRandomFunction,
+    OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField, PinkGaussianField
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor
 export covariance, covariancematrix, concurrence
 export processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
 export W
-export MixingUnitaryChannel, KrausOps 
+export MixingUnitaryChannel, krausops 
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
 specified by the paths of the shuttled spins.

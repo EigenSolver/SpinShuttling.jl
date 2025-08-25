@@ -1,21 +1,20 @@
 abstract type RandomField end
-abstract type GaussianRandomField <: RandomField end 
-abstract type PoissonRandomField <: RandomField end 
+abstract type GaussianRandomField <: RandomField end
+abstract type PoissonRandomField <: RandomField end
 
-abstract type RandomVectorField end
-abstract type GaussianRandomVectorField <: RandomVectorField end
-
+abstract type MultivariateRandomField end
+abstract type MultivariateGaussianRandomField <: MultivariateRandomField end
 
 Point{N} = Tuple{Vararg{Real,N}}
 
 """
 Ornstein-Uhlenbeck field, the correlation function of which is 
-`σ^2 * exp(-|t₁ - t₂|/θₜ) * exp(-|x₁-x₂|/θₓ)` 
+`σ^2/(4*κₜ *κₓ) * exp(-|t₁ - t₂|*κₜ) * exp(-|x₁-x₂|*κₓ)` 
 where `t` is time and `x` is position.
 """
 struct OrnsteinUhlenbeckField <: GaussianRandomField
     μ::Union{<:Real,Function} # mean
-    θ::Vector{<:Real}
+    κ::Vector{<:Real}
     σ::Real # covariance
 end
 
@@ -45,7 +44,59 @@ struct PinkPiField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
-mutable struct GaussianRandomFunction 
+"""
+
+Pink-Gaussian Field, the correlation function of which is
+`σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * exp(-|x₁-x₂|^2/(2κ^2))`
+where `expinti` is the exponential integral function.
+
+"""
+struct PinkGaussianField <: GaussianRandomField
+    μ::Union{<:Real,Function}  # mean
+    κ::Real
+    σ::Real
+    γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
+end
+
+"""
+Alvarez, et al 2012.
+
+Separable Multivariate Gaussian Random Field, the correlation function of which is
+
+"""
+struct SeparableMultivariateGaussianRandomField{N} <: MultivariateGaussianRandomField
+    B::NTuple{N,<:GaussianRandomField}
+    ρ::Matrix{<:Real}
+
+    function SeparableMultivariateGaussianRandomField(B::NTuple{N,GaussianRandomField}, ρ::Matrix{<:Real}) where {N}
+        size(ρ) == (N, N) || throw(ArgumentError("Correlation matrix ρ must be $N×$N. Got size $(size(ρ))"))
+        new{N}(B, ρ)
+    end
+end
+
+
+"""
+Gardiner, et al, Handbook of Stochastic Methods, 2004.
+
+
+"""
+struct MultivariateOrnsteinUhlenbeckField{N} <: MultivariateGaussianRandomField
+    μ::Union{Vector{<:Real},Function} # mean
+    κ::Vector{<:Real}
+    σ::Matrix{<:Real} # covariance
+    function MultivariateOrnsteinUhlenbeckField(μ::Union{Vector{<:Real},Function}, κ::Vector{<:Real}, σ::Matrix{<:Real}) where {N}
+        size(σ, 1) == N || throw(ArgumentError("Covariance matrix σ must be $N×$N. Got size $(size(σ))"))
+        new{N}(μ, θ, σ)
+    end
+end
+
+
+"""
+
+A Gaussian random function defined as a finite sample generated from a valid covariance matrix using Cholesky decomposition.
+
+"""
+mutable struct GaussianRandomFunction
     μ::Vector{<:Real}
     P::Vector{<:Point} # sample trace
     Σ::Symmetric{<:Real} # covariance matrices
@@ -92,9 +143,9 @@ Initialize the Cholesky decomposition of the covariance matrix of a random funct
 """
 function initialize!(R::GaussianRandomFunction)
     try
-        R.L = collect(cholesky(R.Σ).L)
+        R.L = collect(cholesky(Hermitian(R.Σ)).L)
     catch
-        R.L = collect(cholesky(R.Σ, RowMaximum(), check=false).L)
+        R.L = collect(cholesky(Hermitian(R.Σ), RowMaximum(), check=false).L)
     end
 end
 
@@ -159,8 +210,8 @@ function CompositeGaussianRandomFunction(R::GaussianRandomFunction, c::Vector{In
 end
 
 
-function CompositeGaussianRandomFunction(P::Vector{<:Point}, process::GaussianRandomField, c::Vector{Int})::GaussianRandomFunction
-    return CompositeGaussianRandomFunction(GaussianRandomFunction(P, process), c)
+function CompositeGaussianRandomFunction(P::Vector{<:Point}, GRF::GaussianRandomField, c::Vector{Int})::GaussianRandomFunction
+    return CompositeGaussianRandomFunction(GaussianRandomFunction(P, GRF), c)
 end
 
 """
@@ -182,32 +233,69 @@ Covariance function of Gaussian random field.
 # Arguments
 - `p₁::Point`: time-position array
 - `p₂::Point`: time-position array
-- `process<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkLorentzianField`
+- `GRF<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkLorentzianField`
 """
-function covariance(p₁::Point, p₂::Point, process::OrnsteinUhlenbeckField)::Real
-    process.σ^2 / prod(2 * process.θ) * exp(-dot(process.θ, abs.(p₁ .- p₂)))
+function covariance(p₁::Point, p₂::Point, GRF::OrnsteinUhlenbeckField)::Real
+    GRF.σ^2 / prod(2 * GRF.κ) * exp(-dot(GRF.κ, abs.(p₁ .- p₂)))
 end
 
-function covariance(p₁::Point, p₂::Point, process::PinkLorentzianField)::Real
+function covariance(p₁::Point, p₂::Point, GRF::PinkLorentzianField)::Real
     t₁ = p₁[1]
     t₂ = p₂[1]
     x₁ = p₁[2:end]
     x₂ = p₂[2:end]
-    γ = process.γ
-    cov_log = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
-    cov_exp = exp(-process.κ * norm(x₁ .- x₂))
-    return process.σ^2 * cov_log * cov_exp
+    γ = GRF.γ
+    cov_log = pinkkernel(abs(t₁ - t₂), γ)
+    cov_exp = exp(-GRF.κ * norm(x₁ .- x₂))
+    return GRF.σ^2 * cov_log * cov_exp
 end
 
-function covariance(p₁::Point, p₂::Point, process::PinkPiField)::Real
+function covariance(p₁::Point, p₂::Point, GRF::PinkPiField)::Real
     t₁ = p₁[1]
     t₂ = p₂[1]
     x₁ = p₁[2:end]
     x₂ = p₂[2:end]
-    γ = process.γ
-    cov_log = t₁ != t₂ ? (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂))) / log(γ[2] / γ[1]) : 1
-    cov_sinc = sinc(-process.κ * norm(x₁ .- x₂))
-    return process.σ^2 * cov_log * cov_sinc
+    γ = GRF.γ
+    cov_log = pinkkernel(abs(t₁ - t₂), γ)
+    cov_sinc = sinc(-GRF.κ * norm(x₁ .- x₂))
+    return GRF.σ^2 * cov_log * cov_sinc
+end
+
+function covariance(p₁::Point, p₂::Point, GRF::PinkGaussianField)::Real
+    t₁ = p₁[1]
+    t₂ = p₂[1]
+    x₁ = p₁[2:end]
+    x₂ = p₂[2:end]
+    γ = GRF.γ
+    cov_log = pinkkernel(abs(t₁ - t₂), γ)
+    cov_gauss = gaussiankernel(norm(x₁ .- x₂), 1 / GRF.κ)
+    return GRF.σ^2 * cov_log * cov_gauss
+end
+
+"""
+Temporal correlation function of pink noise with 1/f spectrum and cutoffs.
+# Arguments
+- `τ::Real`: time difference
+- `γ::Tuple{<:Real,<:Real}`: cutoffs of 1/f
+# Returns
+- `Real`: correlation value
+"""
+function pinkkernel(τ::Real, γ::Tuple{<:Real,<:Real})::Real
+    return τ != 0 ? (expinti(-γ[2] * τ) - expinti(-γ[1] * τ)) / log(γ[2] / γ[1]) : 1
+end
+
+
+"""
+Spatial correlation function of Gaussian kernel.
+
+# Arguments
+- `τ::Real`: distance
+- `θ::Real`: correlation length
+# Returns
+- `Real`: correlation value
+"""
+function gaussiankernel(τ::Real, θ::Real)::Real
+    return exp(-τ^2 / (2 * θ^2))
 end
 
 """
@@ -217,36 +305,42 @@ When `P₁!=P₂`, it is the cross-covariance matrix between two Gaussian random
 # Arguments
 - `P₁::Vector{<:Point}`: time-position array
 - `P₂::Vector{<:Point}`: time-position array
-- `process::GaussianRandomField`: a Gaussian random field
+- `GRF::GaussianRandomField`: a Gaussian random field
 """
-function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, process::GaussianRandomField)::Matrix{Real}
+function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, GRF::GaussianRandomField)::Matrix{Real}
     @assert length(P₁) == length(P₂)
     N = length(P₁)
     A = Matrix{Real}(undef, N, N)
     @threads for i in 1:N
         for j in 1:N
-            A[i, j] = covariance(P₁[i], P₂[j], process)
+            A[i, j] = covariance(P₁[i], P₂[j], GRF)
         end
     end
     return A
 end
 
+function covariancematrix(P₁::Vector{<:Point}, P₂::Vector{<:Point}, MGRF::MultivariateGaussianRandomField)::Matrix{Real}
+    @assert length(P₁) == length(P₂)
+    N = length(P₁)
+
+end
+
 """
-Auto-Covariance matrix of a Gaussian random process.
+Auto-Covariance matrix of a Gaussian random field.
 # Arguments
 - `P::Vector{<:Point}`: time-position array
-- `process::GaussianRandomField`: a Gaussian random field
+- `GRF::GaussianRandomField`: a Gaussian random field
 
 # Returns
 - `Symmetric{Real}`: auto-covariance matrix
 
 """
-function covariancematrix(P::Vector{<:Point}, process::GaussianRandomField)::Symmetric{<:Real}
+function covariancematrix(P::Vector{<:Point}, GRF::GaussianRandomField)::Symmetric{<:Real}
     N = length(P)
     A = Matrix{Real}(undef, N, N)
     @threads for i in 1:N
         for j in i:N
-            A[i, j] = covariance(P[i], P[j], process)
+            A[i, j] = covariance(P[i], P[j], GRF)
         end
     end
     return Symmetric(A)
