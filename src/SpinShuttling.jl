@@ -37,7 +37,7 @@ specified by the paths of the shuttled spins.
 - `T::Real`: Maximum time 
 - `N::Int`: Time discretization 
 - `B::GaussianRandomField`: Noise field
-- `X::Vector{<:Function}`: Shuttling paths, the length of the vector must be `n
+- `X::Tuple{Vararg{Function,N}}`: Shuttling paths, the length of the vector must be `n
 - `initialize::Bool`: Initialize the random function
 
 # Fields
@@ -54,12 +54,16 @@ struct ShuttlingModel
     T::Real # time 
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
-    X::Vector{<:Function}
+    X::NTuple{n, Function} where n
     R::GaussianRandomFunction
-    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Vector{<:Function}; initialize::Bool=true)
+    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Tuple; initialize::Bool=true)
         R = restriction(X, range(0, T, N), B; initialize=initialize)
         new(n, Ψ, T, N, B, X, R)
     end
+end
+
+function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::AbstractVector{<:Function}; initialize::Bool=true)
+    return ShuttlingModel(n, Ψ, T, N, B, tuple(X...), initialize=initialize)
 end
 
 # struct BlochShuttlingModel
@@ -70,9 +74,9 @@ end
 #     Bx::GaussianRandomField
 #     By::GaussianRandomField
 #     Bz::GaussianRandomField
-#     X::Vector{<:Function}
+#     X::NTuple
 #     R::GaussianRandomFunction
-#     function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::Vector{<:Function}; initialize::Bool=true)
+#     function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::NTuple; initialize::Bool=true)
 #         R = restriction(X, range(0, T, N), B; initialize=initialize)
 #         new(n, Ψ, T, N, B, X, R)
 #     end
@@ -107,7 +111,7 @@ model = OneSpinModel(1 / √2 * [1+0im, 1+0im], 1.0, 100, OrnsteinUhlenbeckField
 function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x::Function; initialize::Bool=true)
 
-    model = ShuttlingModel(1, Ψ, T, N, B, [x], initialize=initialize)
+    model = ShuttlingModel(1, Ψ, T, N, B, (x,), initialize=initialize)
     return model
 end
 
@@ -129,8 +133,10 @@ with total time `T` in `μs` and length `L` in `μm`.
 model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), 1.0)
 ```
 """
-OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true) =
-    OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, t::Real -> L / T * t, initialize=initialize)
+function OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+    x(t::Real)::Real = L / T * t
+    return OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, x, initialize=initialize)
+end
 
 """
 One spin shuttling model initialzied at |Ψ₀⟩=|+⟩.
@@ -152,7 +158,7 @@ model = OneSpinForthBackModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1
 """
 function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)   
     x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
-    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ -> x(τ, 2L / T, L), initialize=initialize)
+    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ::Real -> x(τ, 2L / T, L), initialize=initialize)
 end
 
 function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
@@ -179,10 +185,7 @@ model = TwoSpinModel(1 / √2 * [1+0im, 1+0im, 1+0im, 1+0im], 1.0, 100, Ornstein
 """
 function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
-
-    X = [x₁, x₂]
-    model = ShuttlingModel(2, Ψ, T, N, B, X; initialize=initialize)
-    return model
+    return ShuttlingModel(2, Ψ, T, N, B, tuple(x₁, x₂); initialize=initialize)
 end
 
 """
@@ -215,7 +218,7 @@ function TwoSpinSequentialModel(Ψ::Vector{<:Complex}, T₀::Real, T₁::Real, L
         end
     end
     # δ small shift to avoid overlap
-    δ = 1e-6
+    δ = eps()
     function x₂(t::Real)::Real
         if t < T₀
             return δ
@@ -448,7 +451,7 @@ end
 """
 Restrict the random field along a parameteized curve. 
 # Arguments
-- `X::Vector{<:Function}`: a vector of functions [x₁(t), x₂(t), ...]
+- `X::Tuple`: a vector of functions [x₁(t), x₂(t), ...]
 - `t::AbstractArray`: time array
 - `B::GaussianRandomField`: a Gaussian random field
 - `initialize::Bool`: initialize the random function
@@ -457,7 +460,7 @@ Restrict the random field along a parameteized curve.
 - `GaussianRandomFunction`: a new random function restricted along the curve
 
 """
-function restriction(X::Vector{<:Function},t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::GaussianRandomFunction 
+function restriction(X::Tuple,t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::GaussianRandomFunction 
     f(x::Function, t::Real) = (t, x(t)...)
     P = vcat([f.(x, t) for x in X]...)
     return GaussianRandomFunction(P, B, initialize=initialize)

@@ -12,12 +12,12 @@ increment `h`
 """
 function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:simpson)::Real
     n = length(y) - 1
-    if n%2==1
-        println("warning: `y` length (number of intervals) must be odd, switching to first order integration.")
-        method=:trapezoid
-    end
 
     if method == :simpson
+        if n%2==1
+            println("warning: `y` length (number of intervals) must be odd, switching to first order integration.")
+            return integrate(y, h; method=:trapezoid)
+        end
         # n % 2 == 0 || error("`y` length (number of intervals) must be odd")
         s = sum(y[1:2:n] + 4 * y[2:2:n] + y[3:2:n+1])
         return h / 3 * s
