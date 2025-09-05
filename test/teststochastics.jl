@@ -1,5 +1,5 @@
 using SpinShuttling: covariancepartition, Symmetric, Cholesky, ishermitian, issymmetric, integrate
-using SpinShuttling: X_seq_shuttle
+using SpinShuttling: X_seq_shuttle_delay
 using LsqFit
 using Statistics: std, mean
 
@@ -62,7 +62,7 @@ end
     ψ1=1/√6*[0im,2,-1,0,-1,0,0,0];
     lc=1/κₓ;
 
-    realistic_seq_shuttling(v::Real, τ::Real, l::Real, d::Real) = ShuttlingModel(3, ψ1, 2τ+l/v, N, B, X_seq_shuttle(3, v, τ, l, d))
+    realistic_seq_shuttling(v::Real, τ::Real, l::Real, d::Real) = ShuttlingModel(3, ψ1, 2τ+l/v, N, B, X_seq_shuttle_delay(3, v, τ, l, d))
     model=realistic_seq_shuttling(v, lc/v, l, 0.000)
     
     @test issymmetric(model.R.Σ)
@@ -103,7 +103,7 @@ end
 
 ## 
 @testset "symmetric integration for covariance matrix" begin
-    σ = sqrt(2) / 20; N=201; κₜ=1;κₓ=10;
+    σ = sqrt(2) / 20; κₜ=1;κₓ=10;
     γ=(1e-5,1e5) # MHz
     # 0.01 ~ 100 μs
     # v = 0.1 ~ 1000 m/s
@@ -116,11 +116,14 @@ end
     err1_sym=zeros(M)
     err2=zeros(M)
     i=1
+
+    N=201;
     T_range=range(10, 20, length=M)
     for T in T_range
         t=range(0, T, N)
         P=collect(zip(t, v.*t))
         R=GaussianRandomFunction(P , B)
+        @test size(R.Σ) == (N,N)
         dt=T/N
         f1=exp(-integrate(R.Σ[:,:], dt, dt, method=:trapezoid)/2) 
         f1_sym=exp(-integrate(R.Σ, dt)/2)

@@ -110,10 +110,9 @@ end
 - `d::Real`: distance between spins in the same channel
 
 # Returns
-- `Vector{Function}`: a vector of functions
+- `Tuple{Vararg{Function}, n}`: a vector of functions
 """
-X_seq_shuttle(n::Int, v::Real, d::Real) = [t->(v*t + (k-1)*d,0.0) for k in 1:n]
-
+X_seq_shuttle(n::Int, v::Real, d::Real) = ntuple(k -> (t::Real) -> (v*t + (k-1)*d, 0.0), n)
 
 """
 
@@ -125,8 +124,37 @@ X_seq_shuttle(n::Int, v::Real, d::Real) = [t->(v*t + (k-1)*d,0.0) for k in 1:n]
 # Returns
 - `Vector{Function}`: a vector of functions
 """
-X_prl_shuttle(n::Int, v::Real, d::Real) = [t->(v*t, (k-1)*d) for k in 1:n]
+X_prl_shuttle(n::Int, v::Real, d::Real) =
+    ntuple(k -> (t::Real) -> (v*t, (k-1)*d), n)
+    
 
+"""
+# Arguments
+- `v::Real`: velocity
+- `d1::Real`: distance between the spins in the first channel
+- `d2::Real`: distance between the parallel channel
+
+# Returns
+- `Vector{Function}`: a vector of functions, only for 3 spins
+"""
+function X_tri_shuttle(v::Real,d1::Real,d2::Real)
+    return return X_tri_shuttle(v,d1,d2,0.0)
+end
+
+function X_tri_shuttle(v::Real, d1::Real, d2::Real, θ::Real)
+    f1 = (t::Real) -> (v*t, 0.0)
+    f2 = (t::Real) -> (d1 + v*t, 0.0)
+    f3 = (t::Real) -> (v*t + θ*d1, d2)
+    return (f1, f2, f3)
+end
+
+function X_square_shuttle(v::Real, d1::Real, d2::Real)
+    f1 = (t::Real) -> (v*t, 0.0)
+    f2 = (t::Real) -> (d1 + v*t, 0.0)
+    f3 = (t::Real) -> (d1 + v*t, d2)
+    f4 = (t::Real) -> (v*t, d2)
+    return (f1, f2, f3, f4)
+end
 
 """
 
@@ -159,27 +187,8 @@ end
 # Returns
 - `Vector{Function}`: a vector of functions
 """
-function X_seq_shuttle(n::Int, v::Real, τ::Real, l::Real, d::Real=0.0) 
-    return [t->X_padding(t-(k-1)*τ,v,0,l/v)+(n-k)*d for k in 1:n]
-end
-
-
-"""
-
-# Arguments
-- `v::Real`: velocity
-- `d1::Real`: distance between the spins in the first channel
-- `d2::Real`: distance between the parallel channel
-
-# Returns
-- `Vector{Function}`: a vector of functions, only for 3 spins
-"""
-function X_tri_shuttle(v::Real,d1::Real,d2::Real)
-    return [t->(v*t,0.0),t->(d1+v*t,0.0),t->(v*t,d2)]
-end
-
-function X_square_shuttle(v::Real,d1::Real,d2::Real)
-    return [t->(v*t,0.0),t->(d1+v*t,0.0),t->(d1+v*t,d2),t->(v*t,d2)]
+function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real = 0.0)
+    ntuple(k -> (t::Real) -> X_padding(t - (k-1)*τ, v, 0, l/v) + (n-k)*d, n)
 end
 
 
@@ -195,10 +204,10 @@ end
 - `Vector{Function}`: a vector of functions, only for 3 spins
 """
 function X_tri_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
-    x1=t->(X_padding(t, v, 0, l/v),0.0) 
-    x2=t->(X_padding(t, v, τ, l/v+τ),0.0)
-    x3=t->(X_padding(t, v, 0, l/v), d)
-    return [x1,x2,x3]
+    f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
+    f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
+    f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)
+    return (f1, f2, f3)
 end
 
 """
@@ -213,12 +222,11 @@ end
 - `Vector{Function}`: a vector of functions, only for 4 spins
 """
 function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
-    x1=t->(X_padding(t, v, 0, l/v),0.0) 
-    x2=t->(X_padding(t, v, τ, l/v+τ),0.0)
-    x3=t->(X_padding(t, v, 0, l/v), d)
-    x4=t->(X_padding(t, v, 0, l/v+τ), d)
-    return [x1,x2,x3,x4]
+    f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
+    f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
+    f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)
+    f4 = (t::Real) -> (X_padding(t, v, 0, l/v + τ), d)
+    return (f1, f2, f3, f4)
 end
-
 
 

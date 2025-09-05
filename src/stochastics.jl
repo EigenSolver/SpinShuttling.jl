@@ -76,21 +76,21 @@ end
 # end
 
 
-"""
-Gardiner, et al, Handbook of Stochastic Methods, 2004.
+# """
+# Gardiner, et al, Handbook of Stochastic Methods, 2004.
 
 
-"""
-struct MultivariateOrnsteinUhlenbeckField{N} <: MultivariateGaussianRandomField
-    A::Matrix{<:Real} # mean
-    B::Matrix{<:Real} # drift matrix
+# """
+# struct MultivariateOrnsteinUhlenbeckField{N} <: MultivariateGaussianRandomField
+#     A::Matrix{<:Real} # mean
+#     B::Matrix{<:Real} # drift matrix
     
-    function MultivariateOrnsteinUhlenbeckField(A::Matrix{<:Real}, B::Matrix{<:Real}) where {N}
-        size(A, 1) == N || throw(ArgumentError("Mean matrix A must be $N×$N. Got size $(size(A))"))
-        size(A) == size(B) || throw(ArgumentError("Mean matrix A and drift matrix B must be the same size. Got sizes $(size(A)) and $(size(B))"))
-        new{N}(A, B)
-    end
-end
+#     function MultivariateOrnsteinUhlenbeckField(A::Matrix{<:Real}, B::Matrix{<:Real})
+#         size(A, 1) == N || throw(ArgumentError("Mean matrix A must be $N×$N. Got size $(size(A))"))
+#         size(A) == size(B) || throw(ArgumentError("Mean matrix A and drift matrix B must be the same size. Got sizes $(size(A)) and $(size(B))"))
+#         new{N}(A, B)
+#     end
+# end
 
 
 """
