@@ -133,6 +133,7 @@ X_prl_shuttle(n::Int, v::Real, d::Real) =
 - `v::Real`: velocity
 - `d1::Real`: distance between the spins in the first channel
 - `d2::Real`: distance between the parallel channel
+- `θ::Real`:: 
 
 # Returns
 - `Vector{Function}`: a vector of functions, only for 3 spins
@@ -148,7 +149,7 @@ function X_tri_shuttle(v::Real, d1::Real, d2::Real, θ::Real)
     return (f1, f2, f3)
 end
 
-function X_square_shuttle(v::Real, d1::Real, d2::Real)
+function X_rec_shuttle(v::Real, d1::Real, d2::Real)
     f1 = (t::Real) -> (v*t, 0.0)
     f2 = (t::Real) -> (d1 + v*t, 0.0)
     f3 = (t::Real) -> (d1 + v*t, d2)
@@ -221,7 +222,7 @@ end
 # Returns
 - `Vector{Function}`: a vector of functions, only for 4 spins
 """
-function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
+function X_rec_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
     f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
     f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)
