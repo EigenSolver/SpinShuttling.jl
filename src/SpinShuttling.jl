@@ -33,7 +33,7 @@ specified by the paths of the shuttled spins.
 
 # Arguments
 - `n::Int`: Number of spins
-- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time 
 - `N::Int`: Time discretization 
 - `B::GaussianRandomField`: Noise field
@@ -50,25 +50,25 @@ model = ShuttlingModel(1, [1+0im, 0+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0,
 """
 struct ShuttlingModel
     n::Int # number of spins
-    Ψ::Vector{<:Complex}
+    Ψ::Vector{<:Number}
     T::Real # time 
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
     X::NTuple{n, Function} where n
     R::GaussianRandomFunction
-    function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::Tuple; initialize::Bool=true)
+    function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::GaussianRandomField, X::Tuple; initialize::Bool=true)
         R = restriction(X, range(0, T, N), B; initialize=initialize)
         new(n, Ψ, T, N, B, X, R)
     end
 end
 
-function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::GaussianRandomField, X::AbstractVector{<:Function}; initialize::Bool=true)
+function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::GaussianRandomField, X::AbstractVector{<:Function}; initialize::Bool=true)
     return ShuttlingModel(n, Ψ, T, N, B, tuple(X...), initialize=initialize)
 end
 
 # struct BlochShuttlingModel
 #     n::Int # number of spins
-#     Ψ::Vector{<:Complex}
+#     Ψ::Vector{<:Number}
 #     T::Real # time 
 #     N::Int # Time discretization 
 #     Bx::GaussianRandomField
@@ -76,7 +76,7 @@ end
 #     Bz::GaussianRandomField
 #     X::NTuple
 #     R::GaussianRandomFunction
-#     function ShuttlingModel(n::Int, Ψ::Vector{<:Complex}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::NTuple; initialize::Bool=true)
+#     function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::NTuple; initialize::Bool=true)
 #         R = restriction(X, range(0, T, N), B; initialize=initialize)
 #         new(n, Ψ, T, N, B, X, R)
 #     end
@@ -96,7 +96,7 @@ General one spin shuttling model initialized at initial state |Ψ₀⟩,
 with arbitrary shuttling path x(t). 
 
 # Arguments
-- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
@@ -108,7 +108,7 @@ with arbitrary shuttling path x(t).
 model = OneSpinModel(1 / √2 * [1+0im, 1+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t)
 ```
 """
-function OneSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
+function OneSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
     B::GaussianRandomField, x::Function; initialize::Bool=true)
 
     model = ShuttlingModel(1, Ψ, T, N, B, (x,), initialize=initialize)
@@ -171,7 +171,7 @@ General two spin shuttling model initialized at initial state |Ψ₀⟩,
 with arbitrary shuttling paths x₁(t), x₂(t).
 
 # Arguments
-- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `2^n
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `2^n
 - `T::Real`: Maximum time
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
@@ -183,7 +183,7 @@ with arbitrary shuttling paths x₁(t), x₂(t).
 model = TwoSpinModel(1 / √2 * [1+0im, 1+0im, 1+0im, 1+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), t->t, t->t+1)
 ```
 """
-function TwoSpinModel(Ψ::Vector{<:Complex}, T::Real, N::Int,
+function TwoSpinModel(Ψ::Vector{<:Number}, T::Real, N::Int,
     B::GaussianRandomField, x₁::Function, x₂::Function; initialize::Bool=true)
     return ShuttlingModel(2, Ψ, T, N, B, tuple(x₁, x₂); initialize=initialize)
 end
@@ -195,7 +195,7 @@ The delay between the them is `T₀` and the total shuttling time is `T₁+T₀`
 It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(t)` cannot overlap.
 
 # Arguments
-- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
 - `T₀::Real`: Delay time
 - `T₁::Real`: Shuttling time
 - `L::Real`: Length of the path
@@ -207,7 +207,7 @@ It should be noticed that due to the exclusion of fermions, `x₁(t)` and `x₂(
 model = TwoSpinSequentialModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
-function TwoSpinSequentialModel(Ψ::Vector{<:Complex}, T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
+function TwoSpinSequentialModel(Ψ::Vector{<:Number}, T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     function x₁(t::Real)::Real
         if t < 0
             return 0
@@ -243,7 +243,7 @@ The qubits are shuttled at constant velocity along the 2D path
 The total shuttling time is `T` and the length of the path is `L` in `μm`.
 
 # Arguments
-- `Ψ::Vector{<:Complex}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
+- `Ψ::Vector{<:Number}`: Initial state of the spin system, the length of the vector must be `4`, default is `1/√2(|↑↓⟩-|↓↑⟩)`
 - `T::Real`: Total time
 - `D::Real`: Distance between the two qubits
 - `L::Real`: Length of the path
@@ -255,7 +255,7 @@ The total shuttling time is `T` and the length of the path is `L` in `μm`.
 model = TwoSpinParallelModel(1.0, 1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
-function TwoSpinParallelModel(Ψ::Vector{<:Complex}, T::Real, D::Real, L::Real, N::Int,
+function TwoSpinParallelModel(Ψ::Vector{<:Number}, T::Real, D::Real, L::Real, N::Int,
     B::GaussianRandomField; initialize::Bool=true)
     x₁(t::Real)::Tuple{Real,Real} = (L / T * t, 0)
     x₂(t::Real)::Tuple{Real,Real} = (L / T * t, D)
