@@ -105,6 +105,27 @@ end
 """
 
 # Arguments
+- `t::Real`: total time
+- `T::Real`: time to complete a circle
+- `R::Real`: radius
+- `N::Int`: number of time steps
+- `B::GaussianRandomField`: noise process
+"""
+function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField)
+    ω = 2π / T
+    function x(t::Real)::Tuple{Real,Real}
+        θ = mod(ω * t, 2π)
+        return (R * cos(θ), R * sin(θ))
+    end
+
+    Ψ = 1 / √2 .* [1+0im,1+0im]
+
+    return OneSpinModel(Ψ, t, N, B, x)
+end
+
+"""
+
+# Arguments
 - `n::Int`: number of spins
 - `v::Real`: velocity
 - `d::Real`: distance between spins in the same channel
