@@ -105,6 +105,27 @@ end
 """
 
 # Arguments
+- `t::Real`: total time
+- `T::Real`: time to complete a circle
+- `R::Real`: radius
+- `N::Int`: number of time steps
+- `B::GaussianRandomField`: noise process
+"""
+function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField)
+    ω = 2π / T
+    function x(t::Real)::Tuple{Real,Real}
+        θ = mod(ω * t, 2π)
+        return (R * cos(θ), R * sin(θ))
+    end
+
+    Ψ = 1 / √2 .* [1+0im,1+0im]
+
+    return OneSpinModel(Ψ, t, N, B, x)
+end
+
+"""
+
+# Arguments
 - `n::Int`: number of spins
 - `v::Real`: velocity
 - `d::Real`: distance between spins in the same channel
@@ -133,6 +154,7 @@ X_prl_shuttle(n::Int, v::Real, d::Real) =
 - `v::Real`: velocity
 - `d1::Real`: distance between the spins in the first channel
 - `d2::Real`: distance between the parallel channel
+- `θ::Real`:: 
 
 # Returns
 - `Vector{Function}`: a vector of functions, only for 3 spins
@@ -148,7 +170,7 @@ function X_tri_shuttle(v::Real, d1::Real, d2::Real, θ::Real)
     return (f1, f2, f3)
 end
 
-function X_square_shuttle(v::Real, d1::Real, d2::Real)
+function X_rec_shuttle(v::Real, d1::Real, d2::Real)
     f1 = (t::Real) -> (v*t, 0.0)
     f2 = (t::Real) -> (d1 + v*t, 0.0)
     f3 = (t::Real) -> (d1 + v*t, d2)
@@ -221,7 +243,7 @@ end
 # Returns
 - `Vector{Function}`: a vector of functions, only for 4 spins
 """
-function X_square_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
+function X_rec_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
     f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
     f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
     f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)

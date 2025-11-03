@@ -58,6 +58,19 @@ struct PinkGaussianField <: GaussianRandomField
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
 end
 
+
+"""
+Pink-Delta Field, the correlation function of which is
+`σ^2 * (expinti(-γ[2]abs(t₁ - t₂)) - expinti(-γ[1]abs(t₁ - t₂)))/log(γ[2]/γ[1]) * δ(x₁-x₂)`
+where `expinti` is the exponential integral function.
+δ is the Dirac delta function.
+"""
+struct PinkWhiteField<:GaussianRandomField
+    μ::Union{<:Real,Function}  # mean
+    σ::Real
+    γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
+end
+
 # """
 # Alvarez, et al 2012.
 
@@ -272,6 +285,17 @@ function covariance(p₁::Point, p₂::Point, GRF::PinkGaussianField)::Real
     cov_log = pinkkernel(abs(t₁ - t₂), γ)
     cov_gauss = gaussiankernel(norm(x₁ .- x₂), 1 / GRF.κ)
     return GRF.σ^2 * cov_log * cov_gauss
+end
+
+function covariance(p₁::Point, p₂::Point, GRF::PinkWhiteField)::Real
+    t₁ = p₁[1]
+    t₂ = p₂[1]
+    x₁ = p₁[2:end]
+    x₂ = p₂[2:end]
+    γ = GRF.γ
+    cov_log = pinkkernel(abs(t₁ - t₂), γ)
+    cov_delta = norm(x₁ .- x₂) == 0 ? 1.0 : 0.0
+    return GRF.σ^2 * cov_log * cov_delta
 end
 
 """
