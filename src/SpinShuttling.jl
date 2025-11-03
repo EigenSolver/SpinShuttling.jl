@@ -126,11 +126,10 @@ with total time `T` in `μs` and length `L` in `μm`.
 - `L::Real`: Length of the path
 - `N::Int`: Time discretization
 - `B::GaussianRandomField`: Noise field
-- `v::Real`: Velocity of the shuttling
 
 # Example
 ```julia
-model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), 1.0)
+model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
 function OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
