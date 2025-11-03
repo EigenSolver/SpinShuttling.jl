@@ -65,7 +65,7 @@ Pink-Delta Field, the correlation function of which is
 where `expinti` is the exponential integral function.
 δ is the Dirac delta function.
 """
-struct PinkDeltaField<:GaussianRandomField
+struct PinkWhiteField<:GaussianRandomField
     μ::Union{<:Real,Function}  # mean
     σ::Real
     γ::Tuple{<:Real,<:Real} # cutoffs of 1/f 
@@ -287,7 +287,7 @@ function covariance(p₁::Point, p₂::Point, GRF::PinkGaussianField)::Real
     return GRF.σ^2 * cov_log * cov_gauss
 end
 
-function covariance(p₁::Point, p₂::Point, GRF::PinkDeltaField)::Real
+function covariance(p₁::Point, p₂::Point, GRF::PinkWhiteField)::Real
     t₁ = p₁[1]
     t₂ = p₂[1]
     x₁ = p₁[2:end]
