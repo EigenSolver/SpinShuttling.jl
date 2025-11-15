@@ -125,7 +125,7 @@ end
 @testset begin "test two spin parallel shuttling fidelity"
     L=10; σ =sqrt(2)/20; M=5000; N=501; T=200; κₜ=1/20; κₓ=1/0.1;
     D=0.3;
-    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ,κₓ],σ)
+    B=OrnsteinUhlenbeckField(0,[κₜ,κₓ],σ)
     model=TwoSpinParallelModel(T, D, L, N, B)
     if visualize
         display(heatmap(collect(model.R.Σ), title="cross covariance matrix, two spin EPR"))
