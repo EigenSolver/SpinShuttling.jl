@@ -132,7 +132,7 @@ end
     end
     f1=statefidelity(model)
     f2, f2_err=sampling(model, statefidelity, M)
-    w=exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
+    w=exp(-σ^2 / (4*κₜ*κₓ) / κₜ^2 *(1-exp(-κₓ*D)) * SpinShuttling.P1(κₜ*T, κₓ*L))
     f3=1/2*(1+w)
     @test isapprox(f1, f3,rtol=3e-2)
     @test isapprox(f2, f3, rtol=3e-2) 

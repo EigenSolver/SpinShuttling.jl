@@ -7,7 +7,7 @@ visualize=true
 
 #
 @testset begin "test of random function"
-    T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=11; κₜ=1/20;κₓ=1/0.1;
+    T=400; L=10; σ = sqrt(2) / 20; M = 10000; N=21; κₜ=1/20;κₓ=1/0.1;
     v=L/T;
     t=range(0, T, N)
     P=collect(zip(t, v.*t))
@@ -31,18 +31,28 @@ visualize=true
 
     @test transpose(crosscov) == covariancematrix(P2, P1, B)
 
-    P_comp=vcat(P1,P2)
+    P_comp=collect(zip(t, v.* t, v.*(t.-t₀)))
     R=GaussianRandomFunction(P_comp,B)
+
     c=[1,1]
     RΣ=sum(c'*c .* covariancepartition(R, 2))
-    @test size(RΣ) == (N,N)
 
     @test issymmetric(RΣ)
     @test ishermitian(RΣ)
 
+    c=[1, -1]
     RC=CompositeGaussianRandomFunction(R, c)
+    RCΣ=sum(c'*c .* covariancepartition(R, 2))
+
+    @test issymmetric(RCΣ)
+    @test ishermitian(RCΣ)
+
+    @test sum(RC.Σ .-reduce(vcat, [reduce(hcat, row) for row in eachrow(RCΣ)]))<1e-6
+
+
     if visualize
         display(heatmap(sqrt.(RΣ)))
+        display(heatmap(sqrt.(RCΣ)))
     end
 end
 
