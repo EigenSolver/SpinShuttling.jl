@@ -251,8 +251,18 @@ Covariance function of Gaussian random field.
 - `GRF<:GaussianRandomField`: a Gaussian random field, e.g. `OrnsteinUhlenbeckField` or `PinkLorentzianField`
 """
 function covariance(p₁::Point, p₂::Point, GRF::OrnsteinUhlenbeckField)::Real
-    GRF.σ^2 / prod(2 * GRF.κ) * exp(-dot(GRF.κ, abs.(p₁ .- p₂)))
+    t₁ = p₁[1]
+    t₂ = p₂[1]
+    x₁ = p₁[2:end]
+    x₂ = p₂[2:end]
+    cov_time = exp(-GRF.κ[1] * abs(t₁ - t₂))
+    cov_space = exp(-GRF.κ[2:end] * norm(x₁ .- x₂))
+    return GRF.σ^2 * cov_time * cov_space
 end
+
+# function covariance(p₁::Point, p₂::Point, GRF::OrnsteinUhlenbeckField)::Real
+#     GRF.σ^2 / prod(2 * GRF.κ) * exp(-dot(GRF.κ, abs.(p₁ .- p₂)))
+# end
 
 function covariance(p₁::Point, p₂::Point, GRF::PinkLorentzianField)::Real
     t₁ = p₁[1]
