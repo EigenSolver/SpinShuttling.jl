@@ -16,7 +16,7 @@ include("tomography.jl")
 include("quantumprocess.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
-    OneSpinForthBackModel, 
+    OneSpinForthBackModel,
     TwoSpinSequentialModel, TwoSpinParallelModel
 export GaussianRandomField, GaussianRandomFunction, CompositeGaussianRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField, PinkGaussianField, PinkWhiteField
@@ -26,7 +26,7 @@ export covariance, covariancematrix, concurrence
 export processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
 export W
-export MixingUnitaryChannel, krausops 
+export MixingUnitaryChannel, krausops
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
 specified by the paths of the shuttled spins.
@@ -54,7 +54,7 @@ struct ShuttlingModel
     T::Real # time 
     N::Int # Time discretization 
     B::GaussianRandomField # Noise field
-    X::NTuple{n, Function} where n
+    X::NTuple{n,Function} where n
     R::GaussianRandomFunction
     function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::GaussianRandomField, X::Tuple; initialize::Bool=true)
         R = restriction(X, range(0, T, N), B; initialize=initialize)
@@ -134,7 +134,7 @@ model = OneSpinModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 """
 function OneSpinModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     x(t::Real)::Real = L / T * t
-    return OneSpinModel(1 / √2 * [1+0im, 1+0im], T, N, B, x, initialize=initialize)
+    return OneSpinModel(1 / √2 * [1 + 0im, 1 + 0im], T, N, B, x, initialize=initialize)
 end
 
 """
@@ -154,9 +154,9 @@ with total time `T` in `μs` and length `L` in `μm`.
 model = OneSpinForthBackModel(1.0, 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]))
 ```
 """
-function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)   
+function OneSpinForthBackModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
     x(t::Real, v::Real, L::Real)::Real = (t = t % (2L / v); v * t < L ? v * t : 2L - v * t)
-    return OneSpinModel(1 / √2 * [1+0im, 1+0im], t, N, B, τ::Real -> x(τ, 2L / T, L), initialize=initialize)
+    return OneSpinModel(1 / √2 * [1 + 0im, 1 + 0im], t, N, B, τ::Real -> x(τ, 2L / T, L), initialize=initialize)
 end
 
 function OneSpinForthBackModel(T::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
@@ -231,7 +231,7 @@ function TwoSpinSequentialModel(Ψ::Vector{<:Number}, T₀::Real, T₁::Real, L:
 end
 
 function TwoSpinSequentialModel(T₀::Real, T₁::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
-    return TwoSpinSequentialModel( 1 / √2 .* [0, 1+0im, -1+0im, 0], T₀, T₁, L, N, B; initialize=initialize)
+    return TwoSpinSequentialModel(1 / √2 .* [0, 1 + 0im, -1 + 0im, 0], T₀, T₁, L, N, B; initialize=initialize)
 end
 
 """
@@ -261,7 +261,7 @@ function TwoSpinParallelModel(Ψ::Vector{<:Number}, T::Real, D::Real, L::Real, N
 end
 
 function TwoSpinParallelModel(T::Real, D::Real, L::Real, N::Int, B::GaussianRandomField; initialize::Bool=true)
-    return TwoSpinParallelModel(1 / √2 .* [0, 1+0im, -1+0im, 0], T, D, L, N, B; initialize=initialize)
+    return TwoSpinParallelModel(1 / √2 .* [0, 1 + 0im, -1 + 0im, 0], T, D, L, N, B; initialize=initialize)
 end
 
 """
@@ -326,15 +326,15 @@ dephasingfactor(model, c)
 function dephasingfactor(model::ShuttlingModel, c::Vector{Int}; method::Symbol=:simpson)::Real
     # rewrite the function to use the hcubature methods
     @assert method in [:trapezoid, :simpson, :adaptive]
-    if method==:adaptive
+    if method == :adaptive
         M = zeros(model.n, model.n)
         @threads for i in 1:model.n
             for j in 1:model.n
-                K(t::AbstractVector)= covariance((t[1], model.X[i](t[1])...), (t[2], model.X[j](t[2])...), model.B)
+                K(t::AbstractVector) = covariance((t[1], model.X[i](t[1])...), (t[2], model.X[j](t[2])...), model.B)
                 M[i, j] = hcubature(K, [0.0, 0.0], [model.T, model.T], rtol=1e-5)[1]
             end
         end
-        return exp.(-sum((c * c').*M)/2)
+        return exp.(-sum((c * c') .* M) / 2)
     else
         R = CompositeGaussianRandomFunction(model.R, c, initialize=false)
         return characteristicvalue(R, method=method)
@@ -354,6 +354,33 @@ end
 
 
 """
+Return the dephasing factor of a single spin
+on a series of discrete time points.
+
+# Arguments
+- `n::Int`: The number of discrete time points at which to calculate the dephasing factor.
+- `N::Int`: Intervals between each time points. 
+- `model::ShuttlingModel`: The shuttling model, which must represent a single spin (`model.n == 1`).
+
+# Returns
+- `Vector{<:Real}`: A vector containing the dephasing factor at each of the `n` discrete time points.
+
+"""
+function sequencedephasingfactor(n::Int, N::Int, model::ShuttlingModel)::Vector{<:Real}
+    @assert model.n == 1
+    R = model.R
+    dt = R.P[2][1] - R.P[1][1]
+    if N % 2 == 0
+        method = :trapezoid
+    else
+        method = :simpson
+    end
+
+    W = blockintegrate(R.Σ, dt, n, N; method=method)
+    return W
+end
+
+"""
 Calculate the state fidelity of a spin shuttling model using numerical integration
 of the covariance matrix.
 
@@ -365,10 +392,10 @@ of the covariance matrix.
 - `Real`: The state fidelity
 """
 function statefidelity(model::ShuttlingModel; method::Symbol=:simpson)::Real
-    Ψ= model.Ψ
-    w=dephasingmatrix(model, method=method)
-    ρt=w.*(Ψ*Ψ')
-    return Ψ'*ρt*Ψ
+    Ψ = model.Ψ
+    w = dephasingmatrix(model, method=method)
+    ρt = w .* (Ψ * Ψ')
+    return Ψ' * ρt * Ψ
 end
 
 
@@ -381,7 +408,7 @@ Sampling an observable that defines on a specific spin shuttling model
 - `M::Int`: Monte-Carlo sampling size
 """
 function sampling(model::ShuttlingModel, objective::Function, M::Int; isarray::Bool=false, isparallel::Bool=true)
-    N=model.n * model.N
+    N = model.n * model.N
     samplingfunction()::Union{Number,VecOrMat{<:Number}} = objective(model, randn(N); isarray=isarray)
     if isparallel
         return parallelsampling(samplingfunction, M)
@@ -400,10 +427,10 @@ Sample the state fidelity of a spin shuttling model using Monte-Carlo sampling.
 - `isarray::Bool`: Return the dephasing matrix array for each time step
 """
 function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Union{Real,Vector{<:Real}}
-    w=dephasingmatrix(model, randseq; isarray=isarray)
+    w = dephasingmatrix(model, randseq; isarray=isarray)
     ψ = model.Ψ
-    f= w->real(ψ'*(w.*(ψ*ψ'))*ψ)
-    return isarray ? vec(mapslices(f, w, dims=[1,2])) : f(w)
+    f = w -> real(ψ' * (w .* (ψ * ψ')) * ψ)
+    return isarray ? vec(mapslices(f, w, dims=[1, 2])) : f(w)
 end
 
 
@@ -418,26 +445,26 @@ Sample the dephasing matrix array for a given normal random vector.
 function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Array{<:Complex}
     # model.R || error("covariance matrix is not initialized")
     N = model.N
-    n=model.n
+    n = model.n
     dt = model.T / N
     noises = model.R(randseq)
-    B=[noises[(i-1)*N+1:i*N] for i in 1:n]
-    c=dephasingcoeffs(n)
+    B = [noises[(i-1)*N+1:i*N] for i in 1:n]
+    c = dephasingcoeffs(n)
     if isarray
-        W=ones(Complex, 2^n,2^n, N)
+        W = ones(Complex, 2^n, 2^n, N)
         for j in 1:2^n
             for k in 1:j-1
-                B_eff=sum(c[j,k,:].*B) 
-                W[j, k, :] = exp.(im*cumsum(B_eff)*dt)
+                B_eff = sum(c[j, k, :] .* B)
+                W[j, k, :] = exp.(im * cumsum(B_eff) * dt)
                 W[k, j, :] = W[j, k, :]'
             end
         end
     else
-        W=ones(Complex, 2^n,2^n)
+        W = ones(Complex, 2^n, 2^n)
         for j in 1:2^n
             for k in 1:j-1
-                B_eff=sum(c[j,k,:].*B) 
-                W[j, k] = exp(im*sum(B_eff)*dt)
+                B_eff = sum(c[j, k, :] .* B)
+                W[j, k] = exp(im * sum(B_eff) * dt)
                 W[k, j] = W[j, k]'
             end
         end
@@ -458,7 +485,7 @@ Restrict the random field along a parameteized curve.
 - `GaussianRandomFunction`: a new random function restricted along the curve
 
 """
-function restriction(X::Tuple,t::AbstractArray,B::GaussianRandomField; initialize::Bool=true)::GaussianRandomFunction 
+function restriction(X::Tuple, t::AbstractArray, B::GaussianRandomField; initialize::Bool=true)::GaussianRandomFunction
     f(x::Function, t::Real) = (t, x(t)...)
     P = vcat([f.(x, t) for x in X]...)
     return GaussianRandomFunction(P, B, initialize=initialize)
@@ -495,9 +522,9 @@ function W(T::Real, L::Real, B::PinkLorentzianField; path=:straight)::Real
         β = T .* B.γ
         return exp(-B.σ^2 * T^2 * F3(β, γ))
     elseif path == :forthback
-        T/=2
-        β = T .* B.γ 
-        return exp(-B.σ^2 * T^2*(2*F3(β, γ)+F4(β, γ)))
+        T /= 2
+        β = T .* B.γ
+        return exp(-B.σ^2 * T^2 * (2 * F3(β, γ) + F4(β, γ)))
     end
 end
 
@@ -515,7 +542,7 @@ function W(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField; path=:sequenc
     if path == :sequenced
         return exp(-σ^2 / (4 * κₜ * κₓ) / κₜ^2 * (F1(β, γ, τ) - F2(β, γ, τ)))
     elseif path == :parallel
-        return exp(-σ^2 / (8 *κₜ*κₓ*κₓ) / κₜ^2 *(1-exp(-κₓ*T1)) * P1(κₜ*T0, κₓ*L))
+        return exp(-σ^2 / (8 * κₜ * κₓ * κₓ) / κₜ^2 * (1 - exp(-κₓ * T1)) * P1(κₜ * T0, κₓ * L))
     else
         error("Path not recognized. Use :sequenced or :parallel for two-spin EPR pair shuttling model.")
     end

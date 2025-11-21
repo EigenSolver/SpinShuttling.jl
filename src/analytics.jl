@@ -1,5 +1,13 @@
 # should be removed from the package
 
+"""
+Ancillary function C1 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function C1(β::Real, γ::Real, τ::Real)::Real
     if β <= τ
         return ℯ^(-β - γ - τ) * (1 + ℯ^(2β) - 2ℯ^τ + 2ℯ^(β + τ) * (-β + τ))
@@ -8,6 +16,14 @@ function C1(β::Real, γ::Real, τ::Real)::Real
     end
 end
 
+"""
+Ancillary function C2 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function C2(β::Real, γ::Real, τ::Real)::Real
     if β <= τ
         return ℯ^(-γ) * β * ((ℯ^(-τ) * (-ℯ^β + ℯ^γ)) / (β - γ) + (ℯ^(-β) * (γ - 2ℯ^β * (β + γ) + ℯ^(β + γ) * (2β + γ))) / (γ * (β + γ)))
@@ -16,6 +32,14 @@ function C2(β::Real, γ::Real, τ::Real)::Real
     end
 end
 
+"""
+Ancillary function C3 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function C3(β::Real, γ::Real, τ::Real)::Real
     if β <= τ
         return (ℯ^(-β - γ - τ) * β^2 * (2(-1 + ℯ^(2β)) * β * γ + (1 + ℯ^(2β) + 2ℯ^(β + γ) * (-1 + γ)) * γ^2 + β^2 * (1 + ℯ^(2β) - 2ℯ^(β + γ) * (1 + γ)))) / (β^2 - γ^2)^2
@@ -24,6 +48,14 @@ function C3(β::Real, γ::Real, τ::Real)::Real
     end
 end
 
+"""
+Ancillary function C4 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function C4(β::Real, γ::Real, τ::Real)::Real
     if β <= τ
         return ℯ^(-γ) * β * ((ℯ^-τ * (-ℯ^β + ℯ^γ)) / (β - γ) + (ℯ^(-β) * (γ - 2ℯ^β * (β + γ) + ℯ^(β + γ) * (2β + γ))) / (γ * (β + γ)))
@@ -32,18 +64,48 @@ function C4(β::Real, γ::Real, τ::Real)::Real
     end
 end
 
+"""
+Ancillary function P1 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+"""
 function P1(β::Real, γ::Real)::Real
     return -((2β^2 * (1 - ℯ^(-β - γ) - β - γ)) / (β + γ)^2)
 end
 
+"""
+Ancillary function P2 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function P2(β::Real, γ::Real, τ::Real)::Real
     return 2 * (-1 + ℯ^-τ + τ)
 end
 
+"""
+Ancillary function P3 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+- `τ::Real`: Dimensionless delay parameter.
+"""
 function P3(β::Real, γ::Real, τ::Real)::Real
     return (ℯ^(-β - γ - τ) * (-1 + ℯ^(β + γ)) * (-1 + ℯ^τ) * β) / (β + γ)
 end
 
+"""
+Ancillary function P4 for dephasing calculations.
+
+# Arguments
+- `β::Real`: Dimensionless time parameter.
+- `γ::Real`: Dimensionless length parameter.
+"""
 function P4(β::Real, γ::Real)::Real
     return ((ℯ^(-2β) - 1) * (γ / β) - 2 * ℯ^(-β - γ) + ℯ^(-2β) + 1) / (1 - γ^2 / β^2)
 end
@@ -77,15 +139,15 @@ end
 Ancillary function for the dephasing of the Pink-Lorentzian noise.
 """
 function F4(β::Tuple{Real,Real}, γ::Real)::Real
-    F(β::Real) =  -(
+    F(β::Real) = -(
         exp(-2 * β) * (exp(β) - 1) * (2 * β + exp(β) - 1)
-    ) / (2 * β^2) + 
-    2 * expinti(-2 * β) - 
-    expinti(-β)
-    
+    ) / (2 * β^2) +
+                 2 * expinti(-2 * β) -
+                 expinti(-β)
+
     F(β::Real, γ::Real)::Real = (
         (exp(-2 * β) * γ / β) -
-        (γ / β) + log(β + γ) - log(β) +(2 * γ - 1) * expinti(-2 * β) +2 * exp(-γ) * expinti(-β) -expinti(-β - γ) -exp(-2 * γ) * expinti(γ - β) +exp(-2 * γ) * expinti(2 * γ - 2 * β)) / γ^2
+        (γ / β) + log(β + γ) - log(β) + (2 * γ - 1) * expinti(-2 * β) + 2 * exp(-γ) * expinti(-β) - expinti(-β - γ) - exp(-2 * γ) * expinti(γ - β) + exp(-2 * γ) * expinti(2 * γ - 2 * β)) / γ^2
     if γ == 0 # pure 1/f noise
         return (F(β[2]) - F(β[1])) / log(β[2] / β[1])
     else

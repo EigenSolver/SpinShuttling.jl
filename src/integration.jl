@@ -14,7 +14,7 @@ function integrate(y::ArrayOrSubArray{<:Real,1}, h::Real; method::Symbol=:simpso
     n = length(y) - 1
 
     if method == :simpson
-        if n%2==1
+        if n % 2 == 1
             println("warning: `y` length (number of intervals) must be odd, switching to first order integration.")
             return integrate(y, h; method=:trapezoid)
         end
@@ -117,4 +117,23 @@ function integrate(z::Symmetric, h::Real)::Real
     # Integrate the duplicated box
     int_box = _integrate((@view z[m:n, 1:m]))
     return 2 * (int_upper + int_lower - int_box)
+end
+
+"""
+2D integral on a growing submatrix of the input large matrix 
+
+# Arguments
+- `Σ`: A square matrix of size `(n*N + 1) x (n*N + 1)` representing the full covariance or diffusion matrix.
+- `dt`: The time step for the integration.
+- `n`: The number of submatrices to integrate over. The function iterates `n` times, each time considering a larger submatrix.
+- `N`: An integer determining the size increment of the submatrix for each step `k`. The submatrix size is `k*N + 1`.
+- `method`: (Optional) The numerical integration method to use. Defaults to `:trapezoid`.
+
+# Returns
+- A `Vector{<:Real}` where each element `k` corresponds to the real part of `exp(-integral_value_k / 2)`, calculated for the submatrix `M(k)`.  
+"""
+function blockintegrate(Σ::Matrix{<:Number}, dt::Real, n::Int, N::Int; method::Symbol=:trapezoid)::Vector{<:Real}
+    @assert size(Σ) == (n * N + 1, n * N + 1)
+    M(k::Int) = @view Σ[1:k*N+1, 1:k*N+1]
+    return [real(exp.(-SpinShuttling.integrate(M(k), dt, dt, method=method) / 2)) for k in 1:n]
 end
