@@ -13,22 +13,24 @@ One spin model with a right angle turn trajectory
 - `OneSpinModel`: a one spin model
 
 """
-function OneSpinTurnModel(T1::Real, T2::Real, v::Real, N::Int, B::GaussianRandomField)
-    L1=v*T1; L2=v*T2;
+function OneSpinTurnModel(T1::Real, T2::Real, v::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    L1 = v * T1
+    L2 = v * T2
     function x(t::Real)::Tuple{Real,Real}
-        if t<0
-            return (0.0,0.0)
+        if t < 0
+            return (0.0, 0.0)
         elseif 0 ≤ t < T1
             return (v * t, 0.0)
-        elseif T1 ≤ t ≤ T1+T2
-            return (L1, v*(t-T1))
+        elseif T1 ≤ t ≤ T1 + T2
+            return (L1, v * (t - T1))
         else
-            return (L1,L2)
+            return (L1, L2)
         end
     end
 
-    Ψ = 1 / √2 .* [1+0im,1+0im]
-    return OneSpinModel(Ψ, T1+T2, N, B, x)
+    Ψ = 1 / √2 .* [1 + 0im, 1 + 0im]
+    return OneSpinModel(Ψ, T1 + T2, N, B, x; initialize=initialize)
 end
 
 """
@@ -44,62 +46,67 @@ One spin shuttling with a square trajectory
 # Returns
 - `OneSpinModel`: a one spin model
 """
-function OneSpinRectangleModel(t::Real, T::Real, a::Real, b::Real, N::Int, B::GaussianRandomField)
+function OneSpinRectangleModel(t::Real, T::Real, a::Real, b::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
 
-    v = 2(a+b)/T
+    v = 2(a + b) / T
 
     function x(t::Real)::Tuple{Real,Real}
-        t=mod(t, T)
-        T1=a/v
+        t = mod(t, T)
+        T1 = a / v
         if 0 ≤ t < T1
             return (v * t, 0.0)
-        elseif T1 ≤ t < T/2
-            return (a, v*(t-T1))
-        elseif T/2 ≤ t < T/2+T1
-            return (a-v*(t-T/2), b)
-        elseif T/2+T1 ≤ t ≤ T
-            return (0.0, b-v*(t-T/2-T1))
+        elseif T1 ≤ t < T / 2
+            return (a, v * (t - T1))
+        elseif T / 2 ≤ t < T / 2 + T1
+            return (a - v * (t - T / 2), b)
+        elseif T / 2 + T1 ≤ t ≤ T
+            return (0.0, b - v * (t - T / 2 - T1))
         else
-            return (0.0,0.0)
+            return (0.0, 0.0)
         end
     end
 
-    Ψ = 1 / √2 .* [1+0im,1+0im]
+    Ψ = 1 / √2 .* [1 + 0im, 1 + 0im]
 
-    return OneSpinModel(Ψ, t, N, B, x)
+    return OneSpinModel(Ψ, t, N, B, x; initialize=initialize)
 end
 
-function OneSpinRectangleModel(T::Real, a::Real, b::Real, N::Int, B::GaussianRandomField)
-    return OneSpinRectangleModel(T, T, a, b, N, B)
+function OneSpinRectangleModel(T::Real, a::Real, b::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    return OneSpinRectangleModel(T, T, a, b, N, B; initialize=initialize)
 end
 
-function OneSpinSquareModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField)
-    return OneSpinRectangleModel(t, T, L, L, N, B)
+function OneSpinSquareModel(t::Real, T::Real, L::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    return OneSpinRectangleModel(t, T, L, L, N, B; initialize=initialize)
 end
 
-function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField)
-    return OneSpinRectangleModel(T, T, L, N, B)
+function OneSpinSquareModel(T::Real, L::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    return OneSpinRectangleModel(T, T, L, N, B; initialize=initialize)
 end
 
 
-function OneSpinTriangleModel(t::Real, T::Real, a::Real, N::Int, B::GaussianRandomField)
-    v = 3a/T
+function OneSpinTriangleModel(t::Real, T::Real, a::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    v = 3a / T
     function x(t::Real)::Tuple{Real,Real}
-        t=mod(t, T)
-        if 0 ≤ t < T/3
+        t = mod(t, T)
+        if 0 ≤ t < T / 3
             return (v * t, 0.0)
-        elseif T/3 ≤ t < 2T/3
-            return (v*(T-t)/2, v*(t-T/3)*√3/2)
-        elseif 2T/3 ≤ t ≤ T
-            return (v*(T-t)/2, (v*(T-t))*√3/2)
+        elseif T / 3 ≤ t < 2T / 3
+            return (v * (T - t) / 2, v * (t - T / 3) * √3 / 2)
+        elseif 2T / 3 ≤ t ≤ T
+            return (v * (T - t) / 2, (v * (T - t)) * √3 / 2)
         else
-            return (0.0,0.0)
+            return (0.0, 0.0)
         end
     end
 
-    Ψ = 1 / √2 .* [1+0im,1+0im]
+    Ψ = 1 / √2 .* [1 + 0im, 1 + 0im]
 
-    return OneSpinModel(Ψ, t, N, B, x)
+    return OneSpinModel(Ψ, t, N, B, x; initialize=initialize)
 end
 
 """
@@ -111,16 +118,17 @@ end
 - `N::Int`: number of time steps
 - `B::GaussianRandomField`: noise process
 """
-function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField)
+function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
     ω = 2π / T
     function x(t::Real)::Tuple{Real,Real}
         θ = mod(ω * t, 2π)
         return (R * cos(θ), R * sin(θ))
     end
 
-    Ψ = 1 / √2 .* [1+0im,1+0im]
+    Ψ = 1 / √2 .* [1 + 0im, 1 + 0im]
 
-    return OneSpinModel(Ψ, t, N, B, x)
+    return OneSpinModel(Ψ, t, N, B, x; initialize=initialize)
 end
 
 """
@@ -133,7 +141,7 @@ end
 # Returns
 - `Tuple{Vararg{Function}, n}`: a vector of functions
 """
-X_seq_shuttle(n::Int, v::Real, d::Real) = ntuple(k -> (t::Real) -> (v*t + (k-1)*d, 0.0), n)
+X_seq_shuttle(n::Int, v::Real, d::Real) = ntuple(k -> (t::Real) -> (v * t + (k - 1) * d, 0.0), n)
 
 """
 
@@ -146,8 +154,8 @@ X_seq_shuttle(n::Int, v::Real, d::Real) = ntuple(k -> (t::Real) -> (v*t + (k-1)*
 - `Vector{Function}`: a vector of functions
 """
 X_prl_shuttle(n::Int, v::Real, d::Real) =
-    ntuple(k -> (t::Real) -> (v*t, (k-1)*d), n)
-    
+    ntuple(k -> (t::Real) -> (v * t, (k - 1) * d), n)
+
 
 """
 # Arguments
@@ -159,22 +167,22 @@ X_prl_shuttle(n::Int, v::Real, d::Real) =
 # Returns
 - `Vector{Function}`: a vector of functions, only for 3 spins
 """
-function X_tri_shuttle(v::Real,d1::Real,d2::Real)
-    return return X_tri_shuttle(v,d1,d2,0.0)
+function X_tri_shuttle(v::Real, d1::Real, d2::Real)
+    return return X_tri_shuttle(v, d1, d2, 0.0)
 end
 
 function X_tri_shuttle(v::Real, d1::Real, d2::Real, θ::Real)
-    f1 = (t::Real) -> (v*t, 0.0)
-    f2 = (t::Real) -> (d1 + v*t, 0.0)
-    f3 = (t::Real) -> (v*t + θ*d1, d2)
+    f1 = (t::Real) -> (v * t, 0.0)
+    f2 = (t::Real) -> (d1 + v * t, 0.0)
+    f3 = (t::Real) -> (v * t + θ * d1, d2)
     return (f1, f2, f3)
 end
 
 function X_rec_shuttle(v::Real, d1::Real, d2::Real)
-    f1 = (t::Real) -> (v*t, 0.0)
-    f2 = (t::Real) -> (d1 + v*t, 0.0)
-    f3 = (t::Real) -> (d1 + v*t, d2)
-    f4 = (t::Real) -> (v*t, d2)
+    f1 = (t::Real) -> (v * t, 0.0)
+    f2 = (t::Real) -> (d1 + v * t, 0.0)
+    f3 = (t::Real) -> (d1 + v * t, d2)
+    f4 = (t::Real) -> (v * t, d2)
     return (f1, f2, f3, f4)
 end
 
@@ -187,12 +195,12 @@ end
 - `t2::Real`: time to stop moving
 """
 function X_padding(t::Real, v::Real, t1::Real, t2::Real)::Real
-    if t<t1
+    if t < t1
         return 0
-    elseif t<t2
-        return v*(t-t1)
+    elseif t < t2
+        return v * (t - t1)
     else
-        return v*(t2-t1)
+        return v * (t2 - t1)
     end
 end
 
@@ -209,8 +217,8 @@ end
 # Returns
 - `Vector{Function}`: a vector of functions
 """
-function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real = 0.0)
-    ntuple(k -> (t::Real) -> X_padding(t - (k-1)*τ, v, 0, l/v) + (n-k)*d, n)
+function X_seq_shuttle_delay(n::Int, v::Real, τ::Real, l::Real, d::Real=0.0)
+    ntuple(k -> (t::Real) -> X_padding(t - (k - 1) * τ, v, 0, l / v) + (n - k) * d, n)
 end
 
 
@@ -226,9 +234,9 @@ end
 - `Vector{Function}`: a vector of functions, only for 3 spins
 """
 function X_tri_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
-    f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
-    f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
-    f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)
+    f1 = (t::Real) -> (X_padding(t, v, 0, l / v), 0.0)
+    f2 = (t::Real) -> (X_padding(t, v, τ, l / v + τ), 0.0)
+    f3 = (t::Real) -> (X_padding(t, v, 0, l / v), d)
     return (f1, f2, f3)
 end
 
@@ -244,10 +252,10 @@ end
 - `Vector{Function}`: a vector of functions, only for 4 spins
 """
 function X_rec_shuttle_delay(v::Real, τ::Real, l::Real, d::Real)
-    f1 = (t::Real) -> (X_padding(t, v, 0, l/v), 0.0)
-    f2 = (t::Real) -> (X_padding(t, v, τ, l/v + τ), 0.0)
-    f3 = (t::Real) -> (X_padding(t, v, 0, l/v), d)
-    f4 = (t::Real) -> (X_padding(t, v, 0, l/v + τ), d)
+    f1 = (t::Real) -> (X_padding(t, v, 0, l / v), 0.0)
+    f2 = (t::Real) -> (X_padding(t, v, τ, l / v + τ), 0.0)
+    f3 = (t::Real) -> (X_padding(t, v, 0, l / v), d)
+    f4 = (t::Real) -> (X_padding(t, v, 0, l / v + τ), d)
     return (f1, f2, f3, f4)
 end
 
