@@ -1,6 +1,9 @@
-# SpinShuttling.jl
+# SpinShuttling.jl 
+[![forthebadge](https://forthebadge.com/badges/built-with-science.svg)](https://forthebadge.com)
+
 [![](https://img.shields.io/badge/Documentation-dev-blue.svg)](https://eigensolver.github.io/SpinShuttling.jl/dev/)
 ![action-ci](https://github.com/eigensolver/SpinShuttling.jl/actions/workflows/runtest.yml/badge.svg)
+
 
 Simulate the open-system dynamics of a moving spin under correlated stochastic noise.
 
@@ -58,3 +61,4 @@ println("TH:", f3)
 The quickstart page has a longer example. See the [documentation](https://eigensolver.github.io/SpinShuttling.jl/dev/) for details.
 
 If you use SpinShuttling.jl in your research, please [cite](CITATION.bib) our work.
+
