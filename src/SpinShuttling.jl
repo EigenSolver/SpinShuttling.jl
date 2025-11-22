@@ -21,7 +21,7 @@ export ShuttlingModel, OneSpinModel, TwoSpinModel,
 export GaussianRandomField, GaussianRandomFunction, CompositeGaussianRandomFunction,
     OrnsteinUhlenbeckField, PinkLorentzianField, PinkPiField, PinkGaussianField, PinkWhiteField
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
-export statefidelity, dephasingmatrix, dephasingfactor
+export statefidelity, dephasingmatrix, dephasingfactor, sequencedephasingfactor
 export covariance, covariancematrix, concurrence
 export processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
@@ -371,9 +371,9 @@ function sequencedephasingfactor(n::Int, N::Int, model::ShuttlingModel)::Vector{
     R = model.R
     dt = R.P[2][1] - R.P[1][1]
     if N % 2 == 0
-        method = :trapezoid
-    else
         method = :simpson
+    else
+        method = :trapezoid
     end
 
     W = blockintegrate(R.Σ, dt, n, N; method=method)

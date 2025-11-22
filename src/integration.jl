@@ -132,7 +132,7 @@ end
 # Returns
 - A `Vector{<:Real}` where each element `k` corresponds to the real part of `exp(-integral_value_k / 2)`, calculated for the submatrix `M(k)`.  
 """
-function blockintegrate(Σ::Matrix{<:Number}, dt::Real, n::Int, N::Int; method::Symbol=:trapezoid)::Vector{<:Real}
+function blockintegrate(Σ::AbstractMatrix{<:Number}, dt::Real, n::Int, N::Int; method::Symbol=:trapezoid)::Vector{<:Real}
     @assert size(Σ) == (n * N + 1, n * N + 1)
     M(k::Int) = @view Σ[1:k*N+1, 1:k*N+1]
     return [real(exp.(-SpinShuttling.integrate(M(k), dt, dt, method=method) / 2)) for k in 1:n]

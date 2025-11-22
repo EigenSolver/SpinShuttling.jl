@@ -30,6 +30,11 @@
     f_s = (model.Ψ' * (w2 .* rho) * model.Ψ)
     @test f ≈ f_c
     @test isapprox(f, f_s, rtol=3e-2)
+
+    chi_arr = sequencedephasingfactor(20, 30, model)
+    @test typeof(chi_arr) == Vector{Float64}
+    @test length(chi_arr) == 20
+    @test (1 + chi_arr[end]) / 2 ≈ f
 end
 
 ## 
