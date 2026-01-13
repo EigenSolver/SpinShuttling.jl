@@ -131,7 +131,8 @@ function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandom
     return OneSpinModel(Ψ, t, N, B, x; initialize=initialize)
 end
 
-function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::GaussianRandomField)
+function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
     v = (2l + 2π*r) / T
     function x(t::Real)::Tuple{Real,Real}
         t = mod(t, T)
@@ -154,10 +155,11 @@ function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::Ga
         end
     end
     Ψ = 1 / √2 .* [1+0im, 1+0im]
-    return OneSpinModel(Ψ, t, N, B, x)
+    return OneSpinModel(Ψ, t, N, B, x, initialize=initialize)
 end
 
-function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField)
+function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
     function x(t::Real)::Tuple{<:Real,<:Real}
         # Wrap time into one period [0, T)
         τ = mod(t, T)
@@ -187,7 +189,7 @@ function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRando
 
         return x, y
     end
-    return OneSpinModel([1, 1+0im]/sqrt(2), t, N, B, x->x(x), initialize=false)
+    return OneSpinModel([1, 1+0im]/sqrt(2), t, N, B, x->x(x), initialize=initialize)
 end
 
 
