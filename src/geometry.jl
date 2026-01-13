@@ -131,32 +131,6 @@ function OneSpinCircleModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandom
     return OneSpinModel(Ψ, t, N, B, x; initialize=initialize)
 end
 
-function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::GaussianRandomField;
-    initialize::Bool=false)
-    v = (2l + 2π*r) / T
-    function x(t::Real)::Tuple{Real,Real}
-        t = mod(t, T)
-        s = v * t
-        l1 = l
-        l2 = π * r
-        if 0 <= s < l1
-            return (s, 0.0)
-        elseif l1 <= s < l1 + l2
-            phi = (s - l1) / r
-            return (l + r * sin(phi), r - r * cos(phi))
-        elseif l1 + l2 <= s < 2l1 + l2
-            u = s - (l1 + l2)
-            return (l - u, 2r)
-        elseif 2l1 + l2 <= s <= 2l1 + 2l2
-            phi = (s - (2l1 + l2)) / r
-            return (-r * sin(phi), r + r * cos(phi))
-        else
-            return (0.0, 0.0)
-        end
-    end
-    Ψ = 1 / √2 .* [1+0im, 1+0im]
-    return OneSpinModel(Ψ, t, N, B, x, initialize=initialize)
-end
 
 function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRandomField;
     initialize::Bool=false)
@@ -191,6 +165,34 @@ function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRando
     end
     return OneSpinModel([1, 1+0im]/sqrt(2), t, N, B, x->x(x), initialize=initialize)
 end
+
+function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::GaussianRandomField;
+    initialize::Bool=false)
+    v = (2l + 2π*r) / T
+    function x(t::Real)::Tuple{Real,Real}
+        t = mod(t, T)
+        s = v * t
+        l1 = l
+        l2 = π * r
+        if 0 <= s < l1
+            return (s, 0.0)
+        elseif l1 <= s < l1 + l2
+            phi = (s - l1) / r
+            return (l + r * sin(phi), r - r * cos(phi))
+        elseif l1 + l2 <= s < 2l1 + l2
+            u = s - (l1 + l2)
+            return (l - u, 2r)
+        elseif 2l1 + l2 <= s <= 2l1 + 2l2
+            phi = (s - (2l1 + l2)) / r
+            return (-r * sin(phi), r + r * cos(phi))
+        else
+            return (0.0, 0.0)
+        end
+    end
+    Ψ = 1 / √2 .* [1+0im, 1+0im]
+    return OneSpinModel(Ψ, t, N, B, x, initialize=initialize)
+end
+
 
 
 """
