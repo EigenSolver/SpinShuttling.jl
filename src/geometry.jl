@@ -180,7 +180,7 @@ function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::Ga
         l1 = l
         l2 = π * r
         xc = l / 2
-        yc = r / 2
+        yc = r
         if 0 <= s < l1
             return (s, 0.0) .- (xc, yc)
         elseif l1 <= s < l1 + l2
