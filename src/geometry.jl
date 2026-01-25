@@ -54,14 +54,16 @@ function OneSpinRectangleModel(t::Real, T::Real, a::Real, b::Real, N::Int, B::Ga
     function x(t::Real)::Tuple{Real,Real}
         t = mod(t, T)
         T1 = a / v
+        xc = a / 2
+        yc = b / 2
         if 0 ≤ t < T1
-            return (v * t, 0.0)
+            return (v * t, 0.0) .- (xc, yc)
         elseif T1 ≤ t < T / 2
-            return (a, v * (t - T1))
+            return (a, v * (t - T1)) .- (xc, yc)
         elseif T / 2 ≤ t < T / 2 + T1
-            return (a - v * (t - T / 2), b)
+            return (a - v * (t - T / 2), b) .- (xc, yc)
         elseif T / 2 + T1 ≤ t ≤ T
-            return (0.0, b - v * (t - T / 2 - T1))
+            return (0.0, b - v * (t - T / 2 - T1)) .- (xc, yc)
         else
             return (0.0, 0.0)
         end
@@ -93,12 +95,14 @@ function OneSpinTriangleModel(t::Real, T::Real, a::Real, N::Int, B::GaussianRand
     v = 3a / T
     function x(t::Real)::Tuple{Real,Real}
         t = mod(t, T)
+        xc = a / 2
+        yc = a / 2 / √3
         if 0 ≤ t < T / 3
-            return (v * t, 0.0)
+            return (v * t, 0.0) .- (xc, yc)
         elseif T / 3 ≤ t < 2T / 3
-            return (v * (T - t) / 2, v * (t - T / 3) * √3 / 2)
+            return (v * (T - t) / 2, v * (t - T / 3) * √3 / 2) .- (xc, yc)
         elseif 2T / 3 ≤ t ≤ T
-            return (v * (T - t) / 2, (v * (T - t)) * √3 / 2)
+            return (v * (T - t) / 2, (v * (T - t)) * √3 / 2) .- (xc, yc)
         else
             return (0.0, 0.0)
         end
@@ -148,7 +152,7 @@ function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRando
 
         # Precompute hexagon vertices (centered at origin, CCW)
         # k = 0..5
-        verts = [(R * cos(k * π/3), R * sin(k * π/3)) for k in 0:5]
+        verts = [(R * cos(k * π / 3), R * sin(k * π / 3)) for k in 0:5]
 
         # Start vertex index (1-based)
         i1 = seg + 1
@@ -164,33 +168,35 @@ function OneSpinHexagonModel(t::Real, T::Real, R::Real, N::Int, B::GaussianRando
 
         return x, y
     end
-    return OneSpinModel([1, 1+0im]/sqrt(2), t, N, B, x, initialize=initialize)
+    return OneSpinModel([1, 1 + 0im] / sqrt(2), t, N, B, x, initialize=initialize)
 end
 
 function OneSpinRaceTrackModel(t::Real, T::Real, r::Real, l::Real, N::Int, B::GaussianRandomField;
     initialize::Bool=false)
-    v = (2l + 2π*r) / T
+    v = (2l + 2π * r) / T
     function x(t::Real)::Tuple{Real,Real}
         t = mod(t, T)
         s = v * t
         l1 = l
         l2 = π * r
+        xc = l / 2
+        yc = r / 2
         if 0 <= s < l1
-            return (s, 0.0)
+            return (s, 0.0) .- (xc, yc)
         elseif l1 <= s < l1 + l2
             phi = (s - l1) / r
-            return (l + r * sin(phi), r - r * cos(phi))
+            return (l + r * sin(phi), r - r * cos(phi)) .- (xc, yc)
         elseif l1 + l2 <= s < 2l1 + l2
             u = s - (l1 + l2)
-            return (l - u, 2r)
+            return (l - u, 2r) .- (xc, yc)
         elseif 2l1 + l2 <= s <= 2l1 + 2l2
             phi = (s - (2l1 + l2)) / r
-            return (-r * sin(phi), r + r * cos(phi))
+            return (-r * sin(phi), r + r * cos(phi)) .- (xc, yc)
         else
             return (0.0, 0.0)
         end
     end
-    Ψ = 1 / √2 .* [1+0im, 1+0im]
+    Ψ = 1 / √2 .* [1 + 0im, 1 + 0im]
     return OneSpinModel(Ψ, t, N, B, x, initialize=initialize)
 end
 
