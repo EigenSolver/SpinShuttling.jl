@@ -426,7 +426,7 @@ Sample the state fidelity of a spin shuttling model using Monte-Carlo sampling.
 - `randseq::Vector{<:Real}`: The random sequence
 - `isarray::Bool`: Return the dephasing matrix array for each time step
 """
-function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Union{Real,Vector{<:Real}}
+function statefidelity(model::ShuttlingModel, randseq::Vector{<:Real}; isarray::Bool=false)::Union{Real,Vector{<:Real}}
     w = dephasingmatrix(model, randseq; isarray=isarray)
     ψ = model.Ψ
     f = w -> real(ψ' * (w .* (ψ * ψ')) * ψ)
@@ -442,7 +442,7 @@ Sample the dephasing matrix array for a given normal random vector.
 - `randseq::Vector{<:Real}`: The random sequence
 - `isarray::Bool`: Return the dephasing matrix array for each time step
 """
-function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray=false)::Array{<:Complex}
+function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray::Bool=false)::Array{<:Complex}
     # model.R || error("covariance matrix is not initialized")
     N = model.N
     n = model.n
@@ -472,6 +472,28 @@ function dephasingmatrix(model::ShuttlingModel, randseq::Vector{<:Real}; isarray
     return W
 end
 
+"""
+Sample the dephasing factor for a given normal random vector and a specific combinator.
+
+# Arguments
+- `model::ShuttlingModel`: The spin shuttling model
+- `randseq::Vector{<:Real}`: The random sequence
+- `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
+- `isarray::Bool`: Return the dephasing factor array for each time step
+
+"""
+function dephasingfactor(model::ShuttlingModel, randseq::Vector{<:Real}; c::Vector{Int}=Int[], isarray::Bool=false)::Union{Real,Vector{<:Real}}
+    dt = model.T / model.N
+    @assert length(c) > 0 "The combinator c must be provided for calculating the dephasing factor."
+    R = CompositeGaussianRandomFunction(model.R, c, initialize=true)
+    B = R(randseq)
+    if isarray
+        w = exp.(im * cumsum(B) * dt)
+    else
+        w = exp(im * sum(B) * dt)
+    end
+    return w
+end
 
 """
 Restrict the random field along a parameteized curve. 
