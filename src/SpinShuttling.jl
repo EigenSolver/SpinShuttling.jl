@@ -481,7 +481,7 @@ Sample the dephasing factor for a given normal random vector and a specific comb
 - `c::Vector{Int}`: The combinator of the noise sequence, which should have the same length as the number of spins.
 - `isarray::Bool`: Return the dephasing factor array for each time step
 """
-function dephasingfactor(model::ShuttlingModel, c::Vector{Int}, randseq::Vector{<:Real}; isarray::Bool=false)::Union{Real,Vector{<:Real}}
+function dephasingfactor(model::ShuttlingModel, c::Vector{Int}, randseq::Vector{<:Real}; isarray::Bool=false)::Union{Complex,Vector{<:Complex}}
     dt = model.T / model.N
     R = CompositeGaussianRandomFunction(model.R, c, initialize=true)
     B = R(randseq)
