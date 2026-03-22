@@ -23,7 +23,7 @@ export GaussianRandomField, GaussianRandomFunction, CompositeGaussianRandomFunct
 export sampling, restriction, initialize!, characteristicfunction, characteristicvalue
 export statefidelity, dephasingmatrix, dephasingfactor, sequencedephasingfactor
 export covariance, covariancematrix, concurrence
-export processfidelity, concurrence, vonneumannentropy
+export averagegatefidelity, processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
 export W
 export MixingUnitaryChannel, krausops
@@ -48,7 +48,7 @@ specified by the paths of the shuttled spins.
 model = ShuttlingModel(1, [1+0im, 0+0im], 1.0, 100, OrnsteinUhlenbeckField([1.0, 1.0, 1.0]), [t->t])
 ```
 """
-struct ShuttlingModel
+mutable struct ShuttlingModel
     n::Int # number of spins
     Ψ::Vector{<:Number}
     T::Real # time 
