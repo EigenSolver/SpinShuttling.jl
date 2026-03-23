@@ -80,6 +80,10 @@ processfidelity
 ```
 
 ```@docs
+averagegatefidelity
+```
+
+```@docs
 W
 ```
 
