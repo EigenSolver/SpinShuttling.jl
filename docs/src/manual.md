@@ -40,6 +40,10 @@ dephasingfactor
 ```
 
 ```@docs
+sequencedephasingfactor
+```
+
+```@docs
 sampling
 ```
 
@@ -98,8 +102,17 @@ PinkLorentzianField
 ```
 
 ```@docs
+PinkGaussianField
+```
+
+```@docs
 PinkPiField
 ```
+
+```@docs
+PinkWhiteField
+```
+
 
 ```@docs
 GaussianRandomFunction
