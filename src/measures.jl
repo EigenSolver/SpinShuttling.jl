@@ -114,7 +114,7 @@ Calculate the average gate fidelity between two unitary operations.
 - `Real`: The average gate fidelity between the two unitary operations.
 """
 function averagegatefidelity(U0::Matrix{<:Number}, U1::Matrix{<:Number})::Real
-    n=Int(log2(size(U0, 1)))
+    n=size(U0, 1)
     M=U0'*U1
     return (tr(M*M')+abs(tr(M))^2) / (n*(n+1))
 end
