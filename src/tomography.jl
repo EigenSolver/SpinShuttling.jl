@@ -1,8 +1,8 @@
 using Base.Iterators
-σx = [0 1; 1 0]
-σy = [0 -im; im 0]
-σz = [1 0; 0 -1]
-σi = [1 0; 0 1]
+const σx = [0 1; 1 0]
+const σy = [0 -im; im 0]
+const σz = [1 0; 0 -1]
+const σi = [1 0; 0 1]
 
 """
 paulitransfermatrix(krausops::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
