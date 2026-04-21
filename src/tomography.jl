@@ -1,8 +1,8 @@
 using Base.Iterators
-σx = [0 1; 1 0]
-σy = [0 -im; im 0]
-σz = [1 0; 0 -1]
-σI = [1 0; 0 1]
+const σx = [0 1; 1 0]
+const σy = [0 -im; im 0]
+const σz = [1 0; 0 -1]
+const σi = [1 0; 0 1]
 
 """
 paulitransfermatrix(krausops::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
@@ -14,12 +14,14 @@ Compute the **Pauli transfer matrix** for a set of Kraus operators.
 # Returns
 - `Matrix{Float64}`: The Pauli transfer matrix of size `4^n × 4^n`.
 """
-function paulitransfermatrix(krausops::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
-    M=length(krausops)
-    @assert log(4, M) % 1 ==0
+function paulitransfermatrix(krausops::Union{Matrix{<:Number}, Vector{<:Matrix{<:Number}}}; normalized::Bool=false)::Matrix{<:Real}
+    if krausops isa Matrix{<:Number}
+        krausops = [krausops]
+    end
+
     d = size(krausops[1])[1] # dimension of the basis
     n = Int(log(2,d))
-    pauli_basis=[σI, σx, σy, σz]
+    pauli_basis=[σi, σx, σy, σz]
 
     n_pauli_basis = Vector{Matrix{Complex{Float64}}}(undef, 4^n)
     for (j,tpl) in enumerate(product(ntuple(_ -> pauli_basis, n)...))
@@ -30,7 +32,7 @@ function paulitransfermatrix(krausops::Vector{<:Matrix{<:Complex}}; normalized::
             n_pauli_basis[j]=kron(tpl...)
         end
     end
-
+    
     return processtomography(krausops, n_pauli_basis; normalized=normalized)
 end
 
@@ -46,13 +48,13 @@ Compute the **transfer matrix** for a quantum channel defined by a set of Kraus 
 # Returns
 - `Matrix{Float64}`: The process tomography transfer matrix of size `N × N
 """
-function processtomography(krausops::Vector{<:Matrix{<:Complex}}, basis::Vector{<:Matrix{<:Complex}}; normalized::Bool=false)
+function processtomography(krausops::Vector{<:Matrix{<:Number}}, basis::Vector{<:Matrix{<:Number}}; normalized::Bool=false)::Matrix{<:Real}
     N=length(basis)
     M=length(krausops)
     @assert log(4, N) % 1 ==0
     d = tr(basis[1]) # dimension of the basis
 
-    TM=zeros(Real, N, N) # transfer matrix
+    TM=zeros(N, N) # transfer matrix
     for j in 1:N # 4^n
         for k in 1:N # 4^n
             ρ=zeros(Complex, size(basis[j]))

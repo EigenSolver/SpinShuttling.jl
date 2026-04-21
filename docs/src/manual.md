@@ -40,6 +40,10 @@ dephasingfactor
 ```
 
 ```@docs
+sequencedephasingfactor
+```
+
+```@docs
 sampling
 ```
 
@@ -80,6 +84,10 @@ processfidelity
 ```
 
 ```@docs
+averagegatefidelity
+```
+
+```@docs
 W
 ```
 
@@ -94,8 +102,17 @@ PinkLorentzianField
 ```
 
 ```@docs
+PinkGaussianField
+```
+
+```@docs
 PinkPiField
 ```
+
+```@docs
+PinkWhiteField
+```
+
 
 ```@docs
 GaussianRandomFunction

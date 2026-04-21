@@ -55,18 +55,24 @@ end
 
 """
 
-processfidelity(E::MixingUnitaryChannel, S::Matrix{<:Number}; d::Int=0)
+processfidelity(E::MixingUnitaryChannel, S::Matrix{<:Number})
 Compute the process fidelity of a quantum channel defined by a `MixingUnitaryChannel` and
 a target process `S`.
 # Arguments
 - `E::MixingUnitaryChannel`: The mixing unitary channel.
-- `S::Matrix{<:Number}`: The target process matrix.
+- `U::Matrix{<:Number}`: The target unitary matrix.
 - `d::Int=0`: Dimension of the Hilbert space. If `d` is `0`, it is inferred from the size of `E`.
 # Returns
 - `Float64`: The process fidelity, a real number in the closed interval **[0
 """
-function processfidelity(E::MixingUnitaryChannel, S::Matrix{<:Number}; d::Int=0)
-    krausops = krausops(E)
-    Λ = paulitransfermatrix(krausops; normalized=true)
-    return processfidelity(Λ, S; d=d)
+function processfidelity(E::MixingUnitaryChannel, U::Matrix{<:Number})
+    Λ = paulitransfermatrix(krausops(E); normalized=true)
+    S = paulitransfermatrix(U; normalized=true)
+    return processfidelity(Λ, S)
 end
+
+
+function averagegatefidelity(E::MixingUnitaryChannel, U::Matrix{<:Number})
+    return averagegatefidelity(krausops(E), U)
+end
+

@@ -8,12 +8,12 @@ using Test
     σx = [0 1; 1 0]
     σy = [0 -im; im 0]
     σz = [1 0; 0 -1]
-    σI = [1 0; 0 1]
+    σi = [1 0; 0 1]
     p=0.5 
-    Us = [σI, σx, σy, σz]
+    Us = [σi, σx, σy, σz]
     Ps = [1-p, p/3, p/3, p/3]
     KO = krausops(MixingUnitaryChannel(Us,Ps))
-    
+    @assert sum([e'*e for e in KO]) ≈ σi
     # Compute the Pauli transfer matrix
     PTM = paulitransfermatrix(KO)
     
