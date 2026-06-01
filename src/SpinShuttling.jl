@@ -26,6 +26,7 @@ export covariance, covariancematrix, concurrence
 export averagegatefidelity, processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
 export MixingUnitaryChannel, krausops
+export W_cp, W_pd, W
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 
 specified by the paths of the shuttled spins.
@@ -560,25 +561,28 @@ function compositedephasing(model::ShuttlingModel, c::Vector{Int})::Real
     return characteristicvalue(R, method=:trapezoid)
 end
 
-```
+"""
 Periodic Dynamical Decoupling (PDD) mask for shuttling model.
 The mask in one period is defined as (1,-1).
+
 # Arguments
-- `model::ShuttlingModel`: The shuttling model`
+- `model::ShuttlingModel`: The shuttling model
 - `n::Int`: The number of periods in the sequence
-```
+"""
+
 function W_pd(model::ShuttlingModel, n::Int)
     @assert model.N%(2*n)==0
     compositedephasing(model, repeat([1,-1],n))
 end
 
-```
+"""
 Carr-Purcell (CP) mask for shuttling model.
 The mask in one period is defined as (1,-1,-1,1).
+
 # Arguments
-- `model::ShuttlingModel`: The shuttling model`
+- `model::ShuttlingModel`: The shuttling model
 - `n::Int`: The number of periods in the sequence
-```
+"""
 function W_cp(model::ShuttlingModel, n::Int)
     @assert model.N%(4*n)==0
     compositedephasing(model, repeat([1,-1,-1,1],n))
