@@ -562,7 +562,7 @@ end
 
 ```
 Periodic Dynamical Decoupling (PDD) mask for shuttling model.
-The mask in one period is defined as $(1,-1)$.
+The mask in one period is defined as (1,-1).
 # Arguments
 - `model::ShuttlingModel`: The shuttling model`
 - `n::Int`: The number of periods in the sequence
@@ -574,7 +574,7 @@ end
 
 ```
 Carr-Purcell (CP) mask for shuttling model.
-The mask in one period is defined as $(1,-1,-1,1)$.
+The mask in one period is defined as (1,-1,-1,1).
 # Arguments
 - `model::ShuttlingModel`: The shuttling model`
 - `n::Int`: The number of periods in the sequence
