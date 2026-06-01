@@ -4,11 +4,11 @@ using SpinShuttling
 using UnicodePlots
 using ProgressMeter
 
-# include("testintegration.jl")
-# include("testfidelity.jl")
-# include("teststochastics.jl")
-# include("testspectrum.jl")
-# include("testdephasingfactor.jl")
-# include("testtomography.jl")
-# include("testprocess.jl")
+include("testintegration.jl")
+include("testfidelity.jl")
+include("teststochastics.jl")
+include("testspectrum.jl")
+include("testdephasingfactor.jl")
+include("testtomography.jl")
+include("testprocess.jl")
 include("testmeasure.jl")

@@ -483,12 +483,14 @@ Sample the dephasing factor for a given normal random vector and a specific comb
 """
 function dephasingfactor(model::ShuttlingModel, c::Vector{Int}, randseq::Vector{<:Real}; isarray::Bool=false)::Union{Complex,Vector{<:Complex}}
     dt = model.T / model.N
-    R = CompositeGaussianRandomFunction(model.R, c, initialize=true)
-    B = R(randseq)
+    n = length(c)
+    B = [model.R(randseq)[(i-1)*model.N+1:i*model.N] for i in 1:n]
+    # R = CompositeGaussianRandomFunction(model.R, c, initialize=true)
+    B_eff = sum(c[i] .* B[i] for i in 1:n)
     if isarray
-        w = exp.(im * cumsum(B) * dt)
+        w = exp.(im * cumsum(B_eff) * dt)
     else
-        w = exp(im * sum(B) * dt)
+        w = exp(im * sum(B_eff) * dt)
     end
     return w
 end
