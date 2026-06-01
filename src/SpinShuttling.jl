@@ -14,7 +14,6 @@ include("sampling.jl")
 include("measures.jl")
 include("tomography.jl")
 include("quantumprocess.jl")
-include("masks.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel,
@@ -66,21 +65,6 @@ function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::Gaussi
     return ShuttlingModel(n, Ψ, T, N, B, tuple(X...), initialize=initialize)
 end
 
-# struct BlochShuttlingModel
-#     n::Int # number of spins
-#     Ψ::Vector{<:Number}
-#     T::Real # time 
-#     N::Int # Time discretization 
-#     Bx::GaussianRandomField
-#     By::GaussianRandomField
-#     Bz::GaussianRandomField
-#     X::NTuple
-#     R::GaussianRandomFunction
-#     function ShuttlingModel(n::Int, Ψ::Vector{<:Number}, T::Real, N::Int, B::Tuple{Vararg{GaussianRandomField,3}}, X::NTuple; initialize::Bool=true)
-#         R = restriction(X, range(0, T, N), B; initialize=initialize)
-#         new(n, Ψ, T, N, B, X, R)
-#     end
-# end
 
 function Base.show(io::IO, model::ShuttlingModel)
     println(io, "Model for spin shuttling")
@@ -568,6 +552,36 @@ function W(T0::Real, T1::Real, L::Real, B::OrnsteinUhlenbeckField; path=:sequenc
     else
         error("Path not recognized. Use :sequenced or :parallel for two-spin EPR pair shuttling model.")
     end
+end
+
+function compositedephasing(model::ShuttlingModel, c::Vector{Int})::Real
+    # @assert length(c) == model.n
+    R = CompositeGaussianRandomFunction(model.R, c)
+    return characteristicvalue(R, method=:trapezoid)
+end
+
+```
+Periodic Dynamical Decoupling (PDD) mask for shuttling model.
+The mask in one period is defined as $(1,-1)$.
+# Arguments
+- `model::ShuttlingModel`: The shuttling model`
+- `n::Int`: The number of periods in the sequence
+```
+function W_pd(model::ShuttlingModel, n::Int)
+    @assert model.N%(2*n)==0
+    compositedephasing(model, repeat([1,-1],n))
+end
+
+```
+Carr-Purcell (CP) mask for shuttling model.
+The mask in one period is defined as $(1,-1,-1,1)$.
+# Arguments
+- `model::ShuttlingModel`: The shuttling model`
+- `n::Int`: The number of periods in the sequence
+```
+function W_cp(model::ShuttlingModel, n::Int)
+    @assert model.N%(4*n)==0
+    compositedephasing(model, repeat([1,-1,-1,1],n))
 end
 
 end
