@@ -14,6 +14,7 @@ include("sampling.jl")
 include("measures.jl")
 include("tomography.jl")
 include("quantumprocess.jl")
+include("masks.jl")
 
 export ShuttlingModel, OneSpinModel, TwoSpinModel,
     OneSpinForthBackModel,
@@ -25,7 +26,6 @@ export statefidelity, dephasingmatrix, dephasingfactor, sequencedephasingfactor
 export covariance, covariancematrix, concurrence
 export averagegatefidelity, processfidelity, concurrence, vonneumannentropy
 export paulitransfermatrix, processtomography
-export W
 export MixingUnitaryChannel, krausops
 """
 Spin shuttling model defined by a stochastic field, the realization of the stochastic field is 

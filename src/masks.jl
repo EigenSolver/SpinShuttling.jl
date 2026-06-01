@@ -15,7 +15,7 @@ The mask in one period is defined as $(1,-1)$.
 - `model::ShuttlingModel`: The shuttling model`
 - `n::Int`: The number of periods in the sequence
 ```
-function W_pdd(model::ShuttlingModel, n::Int)
+function W_pd(model::ShuttlingModel, n::Int)
     @assert model.N%(2*n)==0
     compositedephasing(model, repeat([1,-1],n))
 end
