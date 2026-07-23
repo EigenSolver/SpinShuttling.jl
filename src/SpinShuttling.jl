@@ -343,17 +343,21 @@ Return the dephasing factor of a single spin
 on a series of discrete time points.
 
 # Arguments
-- `n::Int`: The number of discrete time points at which to calculate the dephasing factor.
+- `k::Int`: The number of discrete time points at which to calculate the dephasing factor.
 - `N::Int`: Intervals between each time points. 
 - `model::ShuttlingModel`: The shuttling model, which must represent a single spin (`model.n == 1`).
 
 # Returns
-- `Vector{<:Real}`: A vector containing the dephasing factor at each of the `n` discrete time points.
+- `Vector{<:Real}`: A vector containing the dephasing factor at each of the `k` discrete time points.
 
 """
-function sequencedephasingfactor(n::Int, N::Int, model::ShuttlingModel)::Vector{<:Real}
-    @assert model.n == 1
-    R = model.R
+function sequencedephasingfactor(k::Int, N::Int, model::ShuttlingModel; c::Vector{Int}=[1,1])::Vector{<:Real}
+    if model.n == 1
+        R = model.R
+    else
+        @assert model.n==length(c) "The length of the combinator c must match the number of spins in the model."
+        R = CompositeGaussianRandomFunction(model.R, c)
+    end
     dt = R.P[2][1] - R.P[1][1]
     if N % 2 == 0
         method = :simpson
@@ -361,7 +365,7 @@ function sequencedephasingfactor(n::Int, N::Int, model::ShuttlingModel)::Vector{
         method = :trapezoid
     end
 
-    W = blockintegrate(R.Σ, dt, n, N; method=method)
+    W = blockintegrate(R.Σ, dt, k, N; method=method)
     return W
 end
 
